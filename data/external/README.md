@@ -9,9 +9,11 @@ Nothing here is sent anywhere: the local model reads only the passages a questio
 79 real requirements documents collected from the web (Ferrari, Spagnolo, Gnesi, RE 2017).
 
 - Page: https://zenodo.org/records/7118517
-- Download **requirements-xml.zip** (about 380 kB, 19 documents in XML) and unzip it **into `data/external/pure/`**.
-- Optional: the large zip with all 79 PDFs (about 34 MB) also works; unzip it into the same folder.
-  PDFs need `pypdf` (in requirements.txt) and make start-up slower.
+- Put the documents **in `data/external/pure/`** (subfolders are fine). Supported: `.pdf` (needs `pypdf`), `.xml`,
+  `.html`/`.htm`, `.txt`, `.md`, and legacy `.doc`/`.rtf` (read through macOS `textutil`; skipped, and listed in the
+  doctor, on a machine without it).
+- The first load reads every file and takes about a minute. The result is kept in `cache/library/`, so later
+  start-ups are instant; a changed file is re-read automatically.
 
 ## 2. PROMISE NFR: labelled requirements
 
@@ -19,8 +21,8 @@ Nothing here is sent anywhere: the local model reads only the passages a questio
 (performance, security, usability, availability...).
 
 - Page: https://zenodo.org/records/268542
-- Download the **.arff** file and put it **in `data/external/promise/`**. A CSV with a requirement-text
-  column and a class column also works.
+- Put `nfr.arff` **in `data/external/promise/`** (a subfolder is fine). A CSV with a requirement-text column and a
+  class column also works. The per-project `*_trace.arff` files carry trace links, not requirement text, and are ignored.
 - Licence: CC BY-NC-SA 4.0 (non-commercial use with attribution): fine for the hackathon demo.
 
 ## After adding files

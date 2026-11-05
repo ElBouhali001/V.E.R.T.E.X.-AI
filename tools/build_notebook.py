@@ -128,7 +128,7 @@ else:
 md("## 5. Evaluation against ground truth\n**Seen** = documents the rules were written against. **Holdout** = DOC-06 (paraphrases). The holdout row is the honest number.")
 code(r"""
 gold = gold_table(p.truth)
-scores = score(facts, gold, "rules") + (score(llm_facts, f"AI ({model})") + score(hybrid_facts, "hybrid") if llm_facts else [])
+scores = score(facts, gold, "rules") + (score(llm_facts, gold, f"AI ({model})") + score(hybrid_facts, gold, "hybrid") if llm_facts else [])
 display(pd.DataFrame(scores))
 display(misses(facts, gold)[["id", "doc", "holdout", "key"]])
 base = {r["split"]: r["recall"] for r in score(facts, gold, "b")}

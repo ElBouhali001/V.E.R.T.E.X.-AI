@@ -31,7 +31,7 @@ src/vertex_hub/          THE PROJECT: all logic lives here
   pipeline.py          Twin: wires everything, used by app, notebook and tests
 app/                   the cockpit (streamlit_app.py + ui.py + assets/ logo), imports src
 .streamlit/config.toml theme
-notebooks/01_pipeline_check.ipynb   parallel check notebook (imports src, 27 checks)
+notebooks/01_pipeline_check.ipynb   parallel check notebook (imports src, 31 checks)
 tests/                 45 automated tests (incl. a fake imperfect model)
 tools/                 doctor, validator, notebook builder, app smoke test, llm_eval, guardrails_eval + benchmarks/
 docs/                  threat model, GDPR and AI Act position, governance and billing model
@@ -55,7 +55,7 @@ pytest                             # logic works         -> 45 passed
 Then two terminal tabs (each runs until Ctrl+C):
 
 ```bash
-jupyter lab notebooks/01_pipeline_check.ipynb   # tab 1: Run All -> "27/27 checks passed"
+jupyter lab notebooks/01_pipeline_check.ipynb   # tab 1: Run All -> "27/31 checks passed"
 streamlit run app/streamlit_app.py              # tab 2: the cockpit, http://localhost:8501
 ```
 
@@ -71,7 +71,7 @@ the running cockpit. Put the official Capgemini logo next to it as
 
 ## Datasets and the AI check
 
-Public datasets go in `data/external/` (links and folders in `data/external/README.md`): PURE in
+Public datasets go in `data/external/` (links and folders in `data/external/README.md`): PURE (79 documents, PDF/DOC/HTML) in
 `data/external/pure/`, PROMISE NFR in `data/external/promise/`. They appear in the **Library** page and Ask Vertex
 cites them.
 

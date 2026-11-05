@@ -8,9 +8,14 @@ Each passage gets an id like EXT-PURE-0001 or EXT-NFR-0001, which Ask Vertex cit
 """
 import csv
 import io
+import json
 import math
 import re
+import shutil
+import subprocess
+import tempfile
 import xml.etree.ElementTree as ET
+from html.parser import HTMLParser
 from collections import Counter
 from pathlib import Path
 
@@ -82,6 +87,50 @@ def read_pdf(path):
     return Path(path).stem, _chunks(text)
 
 
+class _Plain(HTMLParser):
+    SKIP = {"script", "style", "head"}
+    BREAK = {"p", "div", "br", "li", "tr", "h1", "h2", "h3", "h4", "h5", "h6", "table", "ul", "ol"}
+
+    def __init__(self):
+        super().__init__()
+        self.out, self.skip = [], 0
+
+    def handle_starttag(self, tag, attrs):
+        if tag in self.SKIP:
+            self.skip += 1
+        elif tag in self.BREAK:
+            self.out.append("\n\n")
+
+    def handle_endtag(self, tag):
+        if tag in self.SKIP and self.skip:
+            self.skip -= 1
+        elif tag in self.BREAK:
+            self.out.append("\n")
+
+    def handle_data(self, data):
+        if not self.skip:
+            self.out.append(data)
+
+
+def read_html(path):
+    parser = _Plain()
+    parser.feed(Path(path).read_text(encoding="utf-8", errors="ignore"))
+    return Path(path).stem, _chunks("".join(parser.out))
+
+
+def read_office(path):
+    """Legacy .doc / .rtf: converted to text with macOS textutil when present, otherwise reported as skipped."""
+    tool = shutil.which("textutil")
+    if not tool:
+        return None, []
+    with tempfile.TemporaryDirectory() as tmp:
+        out = Path(tmp) / "out.txt"
+        run = subprocess.run([tool, "-convert", "txt", "-output", str(out), str(path)], capture_output=True, timeout=60)
+        if run.returncode != 0 or not out.exists():
+            return None, []
+        return Path(path).stem, _chunks(out.read_text(encoding="utf-8", errors="ignore"))
+
+
 def read_text(path):
     return Path(path).stem, _chunks(Path(path).read_text(encoding="utf-8", errors="ignore"))
 
@@ -121,7 +170,47 @@ def _requirement_rows(rows, prefix):
 
 
 # ------------------------------------------------------------------ loading
-def load_external(root):
+def _parse_file(f, ext):
+    """(title, parts) for one document, or (None, []) when it cannot be read."""
+    if ext == ".xml":
+        return read_xml(f)
+    if ext == ".pdf":
+        return read_pdf(f)
+    if ext in (".txt", ".md"):
+        return read_text(f)
+    if ext in (".html", ".htm"):
+        return read_html(f)
+    if ext in (".doc", ".rtf"):
+        return read_office(f)
+    return None, []
+
+
+READABLE = {".xml", ".pdf", ".txt", ".md", ".html", ".htm", ".doc", ".rtf"}
+
+
+def _parse_cached(f, ext, cache_dir):
+    """Parsing a PDF is slow, so the result is kept on disk and reused while the file is unchanged."""
+    if cache_dir is None:
+        return _parse_file(f, ext)
+    st = f.stat()
+    key = re.sub(r"[^A-Za-z0-9_.-]+", "_", f.name) + f"_{st.st_size}_{int(st.st_mtime)}.json"
+    slot = Path(cache_dir) / key
+    try:
+        data = json.loads(slot.read_text(encoding="utf-8"))
+        return data["title"], data["parts"]
+    except (OSError, ValueError, KeyError):
+        pass
+    title, parts = _parse_file(f, ext)
+    if title is not None:
+        try:
+            slot.parent.mkdir(parents=True, exist_ok=True)
+            slot.write_text(json.dumps({"title": title, "parts": parts}), encoding="utf-8")
+        except OSError:
+            pass
+    return title, parts
+
+
+def load_external(root, use_cache=True):
     """All passages found under data/external/, plus a per-dataset summary."""
     base = Path(root) / "data" / "external"
     passages, summary = [], []
@@ -131,28 +220,25 @@ def load_external(root):
         prefix = "NFR" if folder.name.lower().startswith("promise") else folder.name.upper()[:8].replace("-", "")
         before, files, skipped = len(passages), 0, []
         for f in sorted(folder.rglob("*")):
-            if not f.is_file() or f.name.startswith("."):
+            if not f.is_file() or f.name.startswith(".") or f.stem.lower() in ("readme", "license", "licence"):
                 continue
             ext = f.suffix.lower()
             try:
                 if ext in (".arff", ".csv"):
                     rows = read_arff(f) if ext == ".arff" else read_csv(f)
                     new = _requirement_rows(rows, prefix)
+                    if not new:  # e.g. the PROMISE trace-link files carry no requirement text: nothing to index
+                        continue
                     for k, p in enumerate(new, len(passages) - before + 1):
                         p["id"] = f"EXT-{prefix}-{k:04d}"
                     passages += new
                     files += 1
                     continue
-                if ext == ".xml":
-                    title, parts = read_xml(f)
-                elif ext == ".pdf":
-                    title, parts = read_pdf(f)
-                    if title is None:
-                        skipped.append(f.name)
-                        continue
-                elif ext in (".txt", ".md"):
-                    title, parts = read_text(f)
-                else:
+                if ext not in READABLE:
+                    continue
+                title, parts = _parse_cached(f, ext, Path(root) / "cache" / "library" if use_cache else None)
+                if title is None:
+                    skipped.append(f.name)
                     continue
             except Exception as e:  # a broken file must not stop the app
                 skipped.append(f"{f.name} ({type(e).__name__})")

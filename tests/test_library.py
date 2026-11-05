@@ -92,3 +92,15 @@ if __name__ == "__main__":
         if k.startswith("test_"):
             v()
             print("PASS", k)
+
+
+def test_html_is_read_and_parsed_files_are_cached():
+    root = make_root()
+    (root / "data/external/pure/page.html").write_text(
+        "<html><head><title>x</title><style>p{}</style></head><body><h1>Inventory requirements</h1>"
+        "<p>The inventory system shall record every stock movement with a timestamp.</p></body></html>")
+    passages, _ = load_external(root)
+    assert any("stock movement" in p["text"] and "style" not in p["text"] for p in passages)
+    assert list((root / "cache" / "library").glob("page.html_*.json"))
+    again, _ = load_external(root)
+    assert [p["text"] for p in again] == [p["text"] for p in passages]
