@@ -105,7 +105,7 @@ def run(page, press=(), state=None):
 if __name__ == "__main__":
     import matplotlib
     matplotlib.use("Agg")
-    pages = ["Cockpit", "Documents", "Impact", "Decisions", "Ask Vertex", "Glossary", "New client", "AI quality"]
+    pages = ["Cockpit", "Documents", "Impact", "Decisions", "Ask Vertex", "Library", "Glossary", "New client", "AI quality"]
     for page in pages:
         run(page)
         print("ok   render", page)

@@ -231,6 +231,14 @@ print(prof)
 check("setup assistant builds a Teamcenter profile", prof["landscape"]["plm"]["product"] == "Teamcenter")
 """)
 
+md("## 9c. Library (datasets in data/external)")
+code(r"""
+display(pd.DataFrame(twin.library_summary) if twin.library_summary else "No dataset yet: see data/external/README.md")
+if len(twin.library):
+    display(pd.DataFrame(twin.library.search("availability response time", 5))[["id", "source", "title", "score", "text"]])
+check("library loads without error", twin.library is not None, f"{len(twin.library)} passages")
+""")
+
 md("## 10. Health report")
 code(r"""
 report = pd.DataFrame(CHECKS)

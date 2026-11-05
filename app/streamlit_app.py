@@ -118,8 +118,12 @@ with st.sidebar:
         st.rerun()
     st.caption(ui.TAGLINE)
     st.divider()
-    if (ASSETS / ui.PARTNER_LOGO).exists():
-        st.image(str(ASSETS / ui.PARTNER_LOGO), width=140)
+    logo = next((f for f in sorted(ASSETS.iterdir()) if f.suffix.lower() in (".svg", ".png", ".jpg", ".jpeg")
+                 and ("partner-logo" in f.name.lower() or "capgemini" in f.name.lower())), None)
+    if logo is not None and logo.suffix.lower() == ".svg":
+        st.html(f'<div style="width:150px">{logo.read_text(encoding="utf-8").replace("<svg ", "<svg width=150 ", 1)}</div>')
+    elif logo is not None:
+        st.image(str(logo), width=150)
     st.caption(ui.PARTNER_LINE)
 
 
@@ -399,14 +403,40 @@ def ask(question):
     ss.chat.append({"q": question, **r})
 
 
+def page_library():
+    st.markdown(ui.hero("Library", "Public datasets added to the knowledge base. Masked and quarantined like project documents, "
+                                   "searchable here and by Ask Vertex."), unsafe_allow_html=True)
+    st.write("")
+    if not len(twin.library):
+        with group("lib-empty"):
+            st.markdown(ui.row("No dataset loaded yet", "Put files in data/external/pure/ (PURE .xml, .pdf, .txt) or "
+                               "data/external/promise/ (PROMISE NFR .arff or .csv), then press Reset demo in the sidebar.",
+                               "See data/external/README.md for the download links."), unsafe_allow_html=True)
+        return
+    st.markdown(ui.figures([(len(twin.library), "passages indexed", False),
+                            (len(twin.library_summary), "datasets", False),
+                            (sum(x["files read"] for x in twin.library_summary), "files read", False),
+                            (len({p["source"] for p in twin.library.passages}), "sources", False)]), unsafe_allow_html=True)
+    st.dataframe(pd.DataFrame(twin.library_summary), hide_index=True, width="stretch")
+    q = st.text_input("Search the library", "response time")
+    for n, h in enumerate(twin.library.search(q, 8)):
+        with group(f"hit-{n}"):
+            st.markdown(ui.row(h["title"], ui.escape(h["text"][:600]), f"{h['id']}, {h['source']}, relevance {h['score']}"),
+                        unsafe_allow_html=True)
+    if st.button("Ask Vertex about this", icon=":material/forum:"):
+        ask(q)
+        goto("ask")
+
+
 def page_ask():
     st.markdown(ui.hero("Ask Vertex", "Questions about the project, answered only from the project graph, with the sources each answer used."),
                 unsafe_allow_html=True)
     st.write("")
     if not ss.chat:
         st.caption("Try one of these")
-        cols = st.columns(len(SUGGESTED))
-        for c, q in zip(cols, SUGGESTED):
+        sug = SUGGESTED + (["Which requirements talk about availability?"] if len(twin.library) else [])
+        cols = st.columns(len(sug))
+        for c, q in zip(cols, sug):
             if c.button(q, key=f"sug-{q}", width="stretch"):
                 ask(q)
                 st.rerun()
@@ -532,6 +562,7 @@ PAGES = {
     "impact": st.Page(page_impact, title="Impact", icon=":material/account_tree:"),
     "decisions": st.Page(page_decisions, title="Decisions", icon=":material/gavel:"),
     "ask": st.Page(page_ask, title="Ask Vertex", icon=":material/forum:"),
+    "library": st.Page(page_library, title="Library", icon=":material/library_books:"),
     "glossary": st.Page(page_glossary, title="Glossary", icon=":material/translate:"),
     "client": st.Page(page_new_client, title="New client", icon=":material/add_business:"),
     "quality": st.Page(page_quality, title="AI quality", icon=":material/insights:"),

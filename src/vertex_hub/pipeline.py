@@ -8,7 +8,8 @@ from .data import Project, load_project
 from .decisions import decide, decided_keys, decision_of
 from .extract import baseline_extract, fact_key, gate, llm_extract, merge
 from .graph import build_graph
-from .guardrails import Audit, Redactor, sanitize
+from .guardrails import Audit, Redactor, quarantine, sanitize
+from .library import Library, load_external
 from .ontology import Glossary
 
 MODES = ("rules", "ai", "hybrid")
@@ -30,6 +31,27 @@ class Twin:
         self.jira = get_jira(p)
         for doc_id, raw in p.corpus().items():
             self._sanitize(doc_id, raw)
+        self.load_library()
+
+    # -------------------------------------------------------------- library (external datasets)
+    def load_library(self):
+        """Datasets in data/external/: quarantined and masked like everything else, then indexed for search."""
+        passages, self.library_summary = load_external(self.project.root)
+        masked = blocked = 0
+        for ps in passages:
+            kept, bl = quarantine(ps["id"], ps["text"])
+            ps["text"], counts = self.redactor.redact(ps["id"], kept)
+            masked += sum(counts.values())
+            blocked += len(bl)
+        self.library = Library(passages)
+        if passages:
+            self.audit.log("library_loaded", None, {"passages": len(passages), "masked": masked, "blocked": blocked,
+                                                    "datasets": [x["dataset"] for x in self.library_summary]})
+        self.refresh_doc_index()
+
+    def refresh_doc_index(self):
+        self.doc_index = Library([{"id": d, "source": "project", "title": self.project.title_of(d), "text": t}
+                                  for d, t in self.sanitized.items()])
 
     # -------------------------------------------------------------- ingestion
     def _sanitize(self, doc_id, raw):
@@ -44,7 +66,9 @@ class Twin:
         """A new document (pasted in the app, or arriving from a connector)."""
         self.project.documents[doc_id] = {"id": doc_id, "title": title, "text": raw_text, "date": date, "type": "upload"}
         self.redactor.learn(raw_text)
-        return self._sanitize(doc_id, raw_text)
+        out = self._sanitize(doc_id, raw_text)
+        self.refresh_doc_index()
+        return out
 
     # -------------------------------------------------------------- extraction
     def ai_ready(self, doc_id):

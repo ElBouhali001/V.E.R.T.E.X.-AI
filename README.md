@@ -22,6 +22,7 @@ src/vertex_hub/          THE PROJECT: all logic lives here
   impact.py            conflicts, trade-offs, version upgrades
   alerts.py            alerts merged across sources, severity, first-seen date
   assistant.py         Ask Vertex (grounded Q&A with checked citations) + setup assistant
+  library.py           external datasets: loaders, masking, BM25 search
   decisions.py         approve / reject, model update, Jira outbox
   connectors.py        Jira mock + Jira Cloud (env vars)
   viz.py               impact map (SVG)
@@ -31,8 +32,8 @@ src/vertex_hub/          THE PROJECT: all logic lives here
 app/                   the cockpit (streamlit_app.py + ui.py + assets/ logo), imports src
 .streamlit/config.toml theme
 notebooks/01_pipeline_check.ipynb   parallel check notebook (imports src, 27 checks)
-tests/                 30 automated tests (incl. a fake imperfect model)
-tools/                 validator, notebook builder, app smoke test, llm_eval
+tests/                 35 automated tests (incl. a fake imperfect model)
+tools/                 doctor, validator, notebook builder, app smoke test, llm_eval
 data/ ontology/ catalog/            the inputs
 cache/                 AI answers + Jira mock (git-ignored, safe to delete)
 ```
@@ -47,7 +48,7 @@ source .venv/bin/activate
 pip install -r requirements.txt
 
 python tools/validate_dataset.py   # data is consistent  -> OK
-pytest                             # logic works         -> 30 passed
+pytest                             # logic works         -> 35 passed
 ```
 
 Then two terminal tabs (each runs until Ctrl+C):
@@ -67,10 +68,23 @@ space to move, F for full screen. Slide 2 has a clickable pipeline, a live what-
 the running cockpit. Put the official Capgemini logo next to it as
 `pitch/capgemini-logo.png`. Orange `[__]` values are placeholders: fill them from `tools/llm_eval.py` and the team.
 
+## Datasets and the AI check
+
+Public datasets go in `data/external/` (links and folders in `data/external/README.md`): PURE in
+`data/external/pure/`, PROMISE NFR in `data/external/promise/`. They appear in the **Library** page and Ask Vertex
+cites them.
+
+Before any demo, run:
+```bash
+python tools/doctor.py --warm
+```
+It checks Python, packages, data, datasets, the local model, AI extraction on a French document, the cache and
+Ask Vertex, and prints the fix for anything that fails. `--warm` reads every document once so the demo never waits.
+
 ## Partner logo
 
-Put the official Capgemini logo at `app/assets/partner-logo.png` (PNG, transparent background, from the
-organisers or Capgemini's brand resources). The sidebar shows it automatically; without it, a text line is shown.
+The sidebar shows any file in `app/assets/` whose name contains `partner-logo` or `capgemini` (.svg or .png).
+The pitch embeds the logo directly.
 
 ## Local AI (Ollama)
 
