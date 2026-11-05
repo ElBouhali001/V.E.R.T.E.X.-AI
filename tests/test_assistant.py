@@ -68,3 +68,19 @@ if __name__ == "__main__":
         if k.startswith("test_"):
             v()
             print("PASS", k)
+
+
+def test_delivery_method_changes_framework():
+    from pathlib import Path
+    from vertex_hub.bootstrap import bootstrap, delivery_plan, frame_backlog
+    from vertex_hub.data import load_yaml
+    root = Path(__file__).resolve().parents[1]
+    c = load_yaml(root / "data" / "medtech" / "client_profile.yaml")["client"]
+    b = bootstrap(root, c)
+    plans = {}
+    for m in ("SAFe", "Scrum", "Waterfall"):
+        plans[m] = delivery_plan(b, {**c, "delivery_framework": m})
+    assert "PI Planning" in plans["SAFe"]["events"] and "increment" in plans["SAFe"]["calendar"]
+    assert plans["Scrum"]["length_weeks"] == 3
+    assert plans["Waterfall"]["calendar"]["gate_or_event"].iloc[-1] == "Go-live gate"
+    assert list(frame_backlog(b, {**c, "delivery_framework": "Waterfall"}).columns)[:2] == ["Phase", "Work package"]

@@ -15,7 +15,7 @@ import streamlit as st  # noqa: E402
 import ui  # noqa: E402
 from vertex_hub import llm, run_pipeline  # noqa: E402
 from vertex_hub.assistant import answer, setup_profile  # noqa: E402
-from vertex_hub.bootstrap import bootstrap  # noqa: E402
+from vertex_hub.bootstrap import bootstrap, delivery_plan, frame_backlog  # noqa: E402
 from vertex_hub.data import load_yaml  # noqa: E402
 from vertex_hub.decisions import send_outbox  # noqa: E402
 from vertex_hub.evaluate import gold_table, misses, score  # noqa: E402
@@ -520,8 +520,15 @@ def page_new_client():
     st.markdown(ui.figures([(starter.epic.nunique(), "epics", False), (starter.capability.nunique(), "capabilities", False),
                             (len(starter), "features with a first user story", False), (land["plm"]["product"], "vocabulary applied", False)]),
                 unsafe_allow_html=True)
-    st.dataframe(starter, hide_index=True, width="stretch", height=480)
-    st.download_button("Download for Jira import", starter.to_csv(index=False), f"{cid}_starter_backlog.csv", icon=":material/download:")
+    plan = delivery_plan(starter, prof)
+    framed = frame_backlog(starter, prof)
+    st.markdown(ui.title(f"Framework: {plan['method']}"), unsafe_allow_html=True)
+    st.caption(f"Levels: {' > '.join(plan['levels'].values())}. {plan['unit']} length {plan['length_weeks']} weeks, "
+               f"first plan {plan['total_weeks']} weeks. Ceremonies: {', '.join(plan['events'])}. Roles: {', '.join(plan['roles'])}.")
+    st.dataframe(plan["calendar"], hide_index=True, width="stretch")
+    st.markdown(ui.title("Starter backlog"), unsafe_allow_html=True)
+    st.dataframe(framed, hide_index=True, width="stretch", height=480)
+    st.download_button("Download for Jira import", framed.to_csv(index=False), f"{cid}_starter_backlog.csv", icon=":material/download:")
 
 
 # ------------------------------------------------------------------ quality

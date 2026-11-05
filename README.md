@@ -32,9 +32,9 @@ src/vertex_hub/          THE PROJECT: all logic lives here
 app/                   the cockpit (streamlit_app.py + ui.py + assets/ logo), imports src
 .streamlit/config.toml theme
 notebooks/01_pipeline_check.ipynb   parallel check notebook (imports src, 27 checks)
-tests/                 44 automated tests (incl. a fake imperfect model)
+tests/                 45 automated tests (incl. a fake imperfect model)
 tools/                 doctor, validator, notebook builder, app smoke test, llm_eval, guardrails_eval + benchmarks/
-docs/                  threat model, GDPR and AI Act position (drafts for review)
+docs/                  threat model, GDPR and AI Act position, governance and billing model
 data/ ontology/ catalog/            the inputs
 cache/                 AI answers + Jira mock (git-ignored, safe to delete)
 ```
@@ -49,7 +49,7 @@ source .venv/bin/activate
 pip install -r requirements.txt
 
 python tools/validate_dataset.py   # data is consistent  -> OK
-pytest                             # logic works         -> 44 passed
+pytest                             # logic works         -> 45 passed
 ```
 
 Then two terminal tabs (each runs until Ctrl+C):
