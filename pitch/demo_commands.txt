@@ -29,6 +29,63 @@ If the AI is slow or Ollama is down: everything still works on rules, the sideba
 If the app misbehaves: Ctrl+C in its tab, run the streamlit command again, press Reset demo.
 
 
+SAMPLE SPOKEN PRESENTATION (about 6 minutes, adapt it to your own words)
+------------------------------------------------------------------------
+[Opening, 30 s, slide 1]
+"Every PLM project starts almost from zero. The client has its own editor, its own vocabulary in two languages,
+its own method. And the decisions that matter live in minutes, tickets and emails. A decision taken in one meeting
+silently breaks an interface agreed in another, and we find out at test, when it is expensive. Our case is ACME,
+an automotive supplier: the PLM part description is 80 characters, the ERP field holds 40. Agreed in one meeting,
+contradicted in another, discovered at test. That is the failure Vertex Hub prevents."
+
+[The idea, 40 s, slide 2]
+"Vertex Hub is one sentence: the AI reads, the graph reasons, a person decides. Documents go through guardrails
+first: personal data is masked and hidden instructions are quarantined. Then rules and a local model read the text,
+and every fact must quote its source word for word, otherwise it is rejected. The facts land in a knowledge graph
+built on one ontology, so Plant BOM, BOP and PBOM are the same thing. Nothing changes without a named person's approval."
+
+[Demo 1, setup, 40 s]
+"New client: ACME Mobility, 3DEXPERIENCE, SAP, MES, SAFe. Here is its backlog and its glossary, in French and English.
+Now a second client, a medtech company on Windchill with no MES. The framework adapts: it adds requirements and
+verification, and skips MES. Same tool, different client, no migration."
+
+[Demo 2, the document, 60 s]
+"Here is a French workshop minute: limit the part description to 40 characters. The tool maps 'designation article'
+to Part Description and shows the exact sentence it relied on. On the left you can see what it masked before the
+model saw anything. In the steering committee minutes a line tried to hijack the assistant. It was quarantined and
+logged, and nothing was extracted from it."
+
+[Demo 3, impact and trade-off, 80 s]
+"This is the proposal card. Option A fixes the truncation on the PLM to ERP interface, but it outdates test TC-205
+and breaks the naming rule in US-501. Five stories and four tests are directly impacted. The longer list through
+interfaces is collapsed, because a board needs the direct impact first. And look at the alerts: the 80 versus 40
+conflict was detectable on 21 September, two weeks before the test failed on 5 October."
+
+[Demo 4, the decision, 40 s]
+"I approve. Nine Jira drafts are prepared, and nothing is sent until I press Send. The decision is logged with its
+full context. That is our answer to hallucination and to trust: the AI proposes, a person disposes."
+
+[Demo 5, Ask Vertex, 60 s]
+"Now I can ask questions. [Ask: Why are part descriptions truncated?] The answer cites graph items, and any citation
+that does not exist is discarded. [Ask: Which requirements talk about availability?] This one comes from the public
+PROMISE and PURE datasets, 625 labelled requirements and 79 real documents, cited as EXT identifiers.
+[Ask the injection line.] And it cannot be hijacked: the model has no tools and cannot change anything."
+
+[Honest numbers, 30 s]
+"We measured, not claimed. On documents the rules were written for they score 8 out of 8, on a held-out document
+they score 0 out of 4. The local model and the hybrid find 3 out of 4, each with a verbatim quote. Our injection
+filter has 12 percent recall on a public benchmark, and we chose it on purpose: zero false alarms on real project
+language, because a filter that blocks real minutes gets switched off. It is the first of several layers."
+
+[Close, 30 s, slide 3]
+"Build fee per client, a run subscription per project, support each year. It reads what teams already write, runs
+locally so nothing leaves the site, and is reused across clients. We learned that vocabulary is the real
+integration problem, and that you must measure on data you never tuned on. Thank you, we are happy to take questions."
+
+If something fails on stage: say "the AI layer is optional, here it is on rules only", keep going, and show the
+sidebar AI status. Never apologise at length; move to the next scene.
+
+
 DEMO FLOW (6 minutes)
 ---------------------
 1. New client      Acme Mobility: automotive, 3DEXPERIENCE, SAFe. Show the starter backlog and the glossary
@@ -83,6 +140,6 @@ KEY NUMBERS TO KNOW
 -------------------
 15 canonical attributes, 5 systems, 4 interfaces, 16 user stories, 16 test cases.
 2 latent conflicts found with no document: INT-01 description 80 vs 40, INT-02 work center 40 vs 8.
-7 names, 3 emails, 1 phone number masked before the model sees the text.
+35 personal-data items masked and 1 injection quarantined before the model sees any text.
 Held-out injection recall 12% with 0 false positives: the regex is only the first layer; the model has no tools,
 its output is schema-checked, every fact must quote its source, and nothing changes without approval.

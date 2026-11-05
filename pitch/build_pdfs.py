@@ -10,13 +10,26 @@ REPO = Path(sys.argv[1]) if len(sys.argv) > 1 else HERE.parent
 ASSETS = REPO / "app" / "assets"
 
 SCORES = {  # None = not measured yet -> shown as a visible placeholder
-    "ai_holdout": None,     # e.g. "4/4"
-    "hybrid_holdout": None,  # e.g. "4/4"
+    "ai_holdout": "3/4",
+    "hybrid_holdout": "3/4",
     "model": "qwen2.5:7b",
 }
 
 TEAM = ["Houssam ElMouedden", "Pietro Tirante", "Muhammad Ali", "Govinda Bhattarai",
         "Aymeric Slaouti", "Mohamed Taleb Moustaph", "Kishore Kannan Prabakaran"]
+
+
+def find_chrome():
+    import shutil
+    for c in ("google-chrome", "chromium", "chrome", "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+              "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser",
+              "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge"):
+        if shutil.which(c) or Path(c).exists():
+            return c
+    sys.exit("No Chromium-based browser found (Chrome, Brave, Edge): needed to render the PDFs.")
+
+
+CHROME = find_chrome()
 
 
 def svg_uri(name):
@@ -123,7 +136,7 @@ footer {{ margin-top: auto; border-top: 1px solid #E5E5EA; padding-top: 5px; fon
 <ul>
 <li><b>Built as a PLM project would be run:</b> CR/CO/CA change process, EBOM/MBOM/PBOM, ERP and MES interfaces, a change board that decides.</li>
 <li><b>Realistic synthetic data:</b> an automotive client (ACME, 3DEXPERIENCE + SAP + MES) with minutes, workshops, status reports, backlog, tickets and tests, and a medtech client (Windchill, Scrum) to prove reuse.</li>
-<li><b>Measured, not claimed:</b> a ground truth with a <b>holdout</b> the rules never saw; 45 automated tests; an injection benchmark.</li>
+<li><b>Measured, not claimed:</b> a ground truth with a <b>holdout</b> the rules never saw; 46 automated tests; an injection benchmark.</li>
 <li><b>Security first:</b> local model, masking and quarantine before any AI call, every action audited.</li>
 </ul>
 </div>
@@ -276,7 +289,7 @@ def render(html, out):
     import tempfile
     src = Path(tempfile.mkdtemp()) / (out.stem + ".html")
     src.write_text(html, encoding="utf-8")
-    subprocess.run(["google-chrome", "--headless=new", "--no-sandbox", "--disable-gpu", "--no-pdf-header-footer",
+    subprocess.run([CHROME, "--headless=new", "--no-sandbox", "--disable-gpu", "--no-pdf-header-footer",
                     f"--print-to-pdf={out}", src.as_uri()], check=True, capture_output=True)
     print("wrote", out)
 
