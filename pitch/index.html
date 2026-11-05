@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vertex Hub, pitch</title>
+<style>
+.notes { display: none; }
+:root {
+  --ink: #1D1D1F; --ink2: #5E5E66; --ink3: #8E8E93; --line: #E5E5EA; --canvas: #F5F5F7; --surface: #FCFCFD;
+  --blue: #0A6CFF; --blue-ink: #0055D4; --indigo: #3D3BD6; --red: #E5352B; --orange: #C25E00; --green: #1E8E3E;
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Inter", "Helvetica Neue", Arial, sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; background: #0E0E10; font-family: var(--font); color: var(--ink); overflow: hidden; }
+#viewport { position: fixed; inset: 0; display: grid; place-items: center; }
+#stage { width: 1600px; height: 900px; position: relative; transform-origin: center center; }
+.slide { position: absolute; inset: 0; background: var(--canvas); padding: 96px 112px 112px; display: flex; flex-direction: column;
+  opacity: 0; pointer-events: none; transition: opacity .45s ease; border-radius: 4px; overflow: hidden; }
+.slide.on { opacity: 1; pointer-events: auto; }
+.slide.dark { background: var(--ink); color: #F5F5F7; }
+@media (prefers-reduced-motion: reduce) { .slide { transition: none; } }
+
+h1 { font-size: 92px; line-height: 1.02; letter-spacing: -0.035em; font-weight: 700; }
+h2 { font-size: 56px; line-height: 1.06; letter-spacing: -0.03em; font-weight: 700; max-width: 1250px; }
+h3 { font-size: 26px; letter-spacing: -0.015em; font-weight: 650; }
+p, li, td, th { font-size: 22px; line-height: 1.45; }
+.lead { font-size: 26px; color: var(--ink2); margin-top: 18px; max-width: 1100px; line-height: 1.4; }
+.dark .lead { color: #A1A1AA; }
+.small { font-size: 18px; color: var(--ink3); }
+.foot { position: absolute; left: 112px; right: 112px; bottom: 40px; display: flex; justify-content: space-between; font-size: 15px; color: var(--ink3); }
+.dark .foot { color: #6E6E73; }
+.grow { flex: 1; }
+.row { display: flex; gap: 24px; }
+.card { background: var(--surface); border-radius: 22px; padding: 34px 34px 36px; box-shadow: 0 0 0 1px rgba(0,0,0,.05), 0 2px 8px rgba(0,0,0,.03); flex: 1; display: flex; flex-direction: column; gap: 12px; }
+.card p { color: #3A3A3C; }
+.num { font-size: 15px; font-weight: 700; color: var(--blue-ink); }
+.pill { display: inline-block; padding: 3px 12px; border-radius: 999px; font-size: 15px; font-weight: 600; background: #EDEDF2; color: #3A3A3C; margin: 2px 6px 2px 0; }
+.pill.red { background: #FFE9E7; color: #B3261E; } .pill.green { background: #E5F6EA; color: var(--green); } .pill.blue { background: #E6EEFF; color: var(--blue-ink); } .pill.orange { background: #FFF1E0; color: var(--orange); }
+table { border-collapse: collapse; width: 100%; }
+th { text-align: left; font-size: 16px; font-weight: 600; color: var(--ink3); padding: 0 18px 12px 0; border-bottom: 1px solid var(--line); }
+td { padding: 15px 18px 15px 0; border-bottom: 1px solid var(--line); vertical-align: top; font-size: 20px; }
+td b { font-weight: 650; }
+.placeholder { color: var(--orange); font-weight: 650; }
+a.btn, button.btn { display: inline-flex; align-items: center; gap: 10px; background: var(--blue); color: #fff; border: 0; border-radius: 999px;
+  padding: 16px 30px; font: 600 22px var(--font); text-decoration: none; cursor: pointer; }
+a.btn.ghost { background: transparent; color: var(--blue-ink); padding-left: 0; }
+:focus-visible { outline: 3px solid var(--blue); outline-offset: 3px; border-radius: 8px; }
+
+/* chrome */
+#progress { position: fixed; left: 0; bottom: 0; height: 3px; background: var(--blue); transition: width .3s ease; z-index: 5; }
+#hud { position: fixed; right: 18px; bottom: 14px; display: flex; gap: 8px; z-index: 5; opacity: .0; transition: opacity .3s; }
+body:hover #hud { opacity: 1; }
+#hud button { background: rgba(255,255,255,.12); color: #fff; border: 0; border-radius: 999px; padding: 8px 14px; font: 500 14px var(--font); cursor: pointer; backdrop-filter: blur(10px); }
+#overview { position: fixed; inset: 0; background: rgba(14,14,16,.96); z-index: 10; display: none; padding: 48px; overflow: auto; }
+#overview.on { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; align-content: start; }
+#overview button { background: #1C1C1E; color: #F5F5F7; border: 1px solid #2C2C2E; border-radius: 14px; padding: 18px; text-align: left; font: 500 16px var(--font); cursor: pointer; min-height: 96px; }
+#overview button span { display: block; color: #8E8E93; font-size: 13px; margin-bottom: 6px; }
+
+/* cover */
+.cover-top { display: flex; align-items: center; gap: 18px; }
+.cover-top b { font-size: 34px; letter-spacing: -0.02em; }
+.partner { display: flex; align-items: center; gap: 18px; }
+.partner img { height: 54px; }
+.partner-slot { width: 220px; height: 64px; border: 2px dashed #C7C7CC; border-radius: 12px; display: grid; place-items: center; font-size: 14px; color: var(--ink3); text-align: center; }
+
+/* loop */
+.steps { display: grid; grid-template-columns: repeat(5, 1fr); gap: 18px; }
+.steps .card { padding: 28px; }
+.arrow { color: var(--ink3); }
+
+/* architecture */
+#arch { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+#arch button { background: var(--surface); border: 0; border-radius: 16px; padding: 18px 20px; text-align: left; cursor: pointer;
+  box-shadow: 0 0 0 1px rgba(0,0,0,.06); font: inherit; color: inherit; min-height: 92px; transition: box-shadow .15s; }
+#arch button b { display: block; font-size: 20px; font-weight: 650; }
+#arch button span { font-size: 15px; color: var(--ink2); }
+#arch button.core { background: #E6EEFF; box-shadow: 0 0 0 2px var(--blue); }
+#arch button.sel { box-shadow: 0 0 0 3px var(--ink); }
+#arch-detail { margin-top: 22px; background: #fff; border-radius: 18px; padding: 22px 26px; box-shadow: 0 0 0 1px rgba(0,0,0,.05); min-height: 104px; }
+#arch-detail h3 { margin-bottom: 6px; }
+.band { grid-column: 1 / -1; background: #EDEDF2 !important; box-shadow: none !important; min-height: 0 !important; }
+
+/* what-if */
+.whatif { display: grid; grid-template-columns: 560px 1fr; gap: 40px; margin-top: 30px; flex: 1; }
+.dial { background: #fff; border-radius: 22px; padding: 34px; box-shadow: 0 0 0 1px rgba(0,0,0,.05); display: flex; flex-direction: column; gap: 18px; }
+.dial .val { font-size: 80px; font-weight: 700; letter-spacing: -0.04em; line-height: 1; font-variant-numeric: tabular-nums; }
+.dial .val small { font-size: 26px; color: var(--ink2); font-weight: 500; letter-spacing: 0; margin-left: 8px; }
+input[type=range] { width: 100%; accent-color: var(--blue); height: 32px; }
+.ticks { display: flex; justify-content: space-between; font-size: 15px; color: var(--ink3); }
+.lanes { display: flex; flex-direction: column; gap: 14px; }
+.lane { background: #fff; border-radius: 18px; padding: 20px 24px; box-shadow: 0 0 0 1px rgba(0,0,0,.05); display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+.lane .t { font-size: 21px; font-weight: 650; }
+.lane .d { font-size: 17px; color: var(--ink2); margin-top: 3px; }
+.status { font-size: 16px; font-weight: 650; padding: 6px 14px; border-radius: 999px; white-space: nowrap; }
+.status.ok { background: #E5F6EA; color: var(--green); } .status.bad { background: #FFE9E7; color: #B3261E; } .status.warn { background: #FFF1E0; color: var(--orange); }
+
+/* statement */
+.statement { margin-top: auto; margin-bottom: auto; }
+.statement h1 { font-size: 104px; max-width: 1350px; }
+.statement .accent { color: #6AA8FF; }
+.timeline { display: flex; gap: 28px; margin-top: 46px; }
+.timeline div { border-left: 2px solid #3A3A3C; padding-left: 18px; }
+.timeline b { display: block; font-size: 22px; color: #F5F5F7; }
+.timeline span { font-size: 19px; color: #A1A1AA; }
+
+/* figures */
+.figs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; margin-top: 34px; }
+.figs div { border-left: 1px solid var(--line); padding: 0 28px; } .figs div:first-child { border-left: 0; padding-left: 0; }
+.figs b { display: block; font-size: 60px; letter-spacing: -0.03em; font-weight: 700; }
+.figs span { font-size: 19px; color: var(--ink2); }
+
+/* three-slide layout */
+.s3grid { display: grid; gap: 22px; flex: 1; margin-top: 26px; }
+.panel { background: var(--surface); border-radius: 22px; padding: 26px 28px; box-shadow: 0 0 0 1px rgba(0,0,0,.05), 0 2px 8px rgba(0,0,0,.03); display: flex; flex-direction: column; gap: 10px; }
+.panel.darkp { background: var(--ink); color: #F5F5F7; box-shadow: none; }
+.panel h3 { font-size: 22px; }
+.panel p, .panel li { font-size: 18px; line-height: 1.45; color: #3A3A3C; }
+.panel.darkp p { color: #A1A1AA; }
+.panel ul { padding-left: 20px; display: flex; flex-direction: column; gap: 4px; }
+.big { font-size: 84px; font-weight: 700; letter-spacing: -0.04em; line-height: 1; color: #6AA8FF; }
+.pipe { display: flex; gap: 8px; }
+.pipe button { flex: 1; background: #fff; border: 0; border-radius: 14px; padding: 14px 14px; text-align: left; cursor: pointer; box-shadow: 0 0 0 1px rgba(0,0,0,.06); font: inherit; color: inherit; }
+.pipe button b { display: block; font-size: 19px; } .pipe button span { font-size: 14px; color: var(--ink2); }
+.pipe button.sel { box-shadow: 0 0 0 2px var(--blue); background: #F2F6FF; }
+#pipe-detail p { font-size: 18px; }
+.mini td, .mini th { font-size: 17px; padding: 9px 12px 9px 0; }
+.checks { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px 16px; }
+.checks span { font-size: 16px; color: #3A3A3C; } .checks span::before { content: "✓ "; color: var(--green); font-weight: 700; }
+.lane.compact { padding: 12px 16px; } .lane.compact .t { font-size: 17px; } .lane.compact .d { font-size: 14px; }
+</style>
+</head>
+<body>
+<div id="viewport"><div id="stage">
+
+<!-- 1 WHY -->
+<section class="slide" data-title="Why">
+  <div class="cover-top"><svg width="56" height="56" viewBox="0 0 1024 1024" role="img" aria-label="Vertex Hub mark"><defs><linearGradient id="g1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1A8CFF"/><stop offset="1" stop-color="#3D3BD6"/></linearGradient></defs><rect width="1024" height="1024" rx="232" fill="url(#g1)"/><path d="M286 286 L512 704 L738 286" fill="none" stroke="#fff" stroke-width="64" stroke-linecap="round" stroke-linejoin="round"/><circle cx="286" cy="286" r="62" fill="#fff"/><circle cx="738" cy="286" r="62" fill="#fff"/><circle cx="512" cy="704" r="112" fill="#fff"/><circle cx="512" cy="704" r="50" fill="#2A63F0"/></svg><b style="font-size:28px">Vertex Hub</b>
+    <span class="small" style="margin-left:14px">V.E.R.T.E.X. AI: Value Extraction and Reconciliation for Technical Excellence</span></div>
+  <h1 style="font-size:68px;margin-top:34px;max-width:1350px">PLM projects lose their decisions between teams, and restart from zero for every client.</h1>
+  <div class="s3grid" style="grid-template-columns:1fr 1fr 1fr 1.25fr">
+    <div class="panel"><span class="num">Vocabulary</span><h3>One concept, three names</h3><p>We say PBOM, the editor says BOP, the client says Plant BOM. Documents drift as the words change.</p></div>
+    <div class="panel"><span class="num">Coordination</span><h3>Decisions stay in one meeting</h3><p>The ERP team caps a field length in its minutes. The PLM team never hears; data is cut at transfer.</p></div>
+    <div class="panel"><span class="num">Delivery</span><h3>Setup by hand, every time</h3><p>New client, editor or version: backlog and test plan rebuilt from scratch.</p></div>
+    <div class="panel darkp"><span class="num" style="color:#6AA8FF">In our demo project</span><div class="big">14 days</div>
+      <p style="color:#F5F5F7;font-size:20px">earlier than any team raised the conflict.</p>
+      <p>21 Sept: PLM confirms 80 characters. SAP already holds 40. 5 Oct: the ERP team finds truncated descriptions.</p></div>
+  </div>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-top:24px">
+    <p style="font-weight:600;font-size:20px">Built for the Capgemini DPM &amp; PLM Hackathon, project P1 <span class="small">[Team name], 6 members</span></p>
+    <div class="partner"><img src="capgemini-logo.png" alt="Capgemini" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'partner-slot',textContent:'Add capgemini-logo.png next to this file'}))"></div>
+  </div>
+</section>
+
+<!-- 2 WHAT -->
+<section class="slide" data-title="What">
+  <h2 style="font-size:52px;max-width:none">The AI reads, the graph reasons, a person decides.</h2>
+  <div class="s3grid" style="grid-template-columns:1.25fr 1fr">
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="pipe" id="pipe">
+        <button class="sel" data-d="Minutes, tickets and status reports, in French or English, read by a model running on the laptop (Ollama). Names, emails and phones are masked first; instructions hidden in documents are quarantined."><b>Read</b><span>local model</span></button>
+        <button data-d="Every word goes to one ontology: Plant BOM is PBOM is BOP. One vocabulary profile per editor and version (3DEXPERIENCE, Windchill, Teamcenter)."><b>Map</b><span>one ontology</span></button>
+        <button data-d="A graph links systems, interfaces, attributes with their limits per system, stories and tests. From any change it computes conflicts, fixes and outdated tests."><b>Reason</b><span>project graph</span></button>
+        <button data-d="Every fact shows the exact sentence it came from, or it is dropped. A person approves or rejects; approval updates the model itself."><b>Decide</b><span>human approval</span></button>
+        <button data-d="Jira comments are drafted for every impacted story and test, and sent only on request. Every step is in the audit trail. Ask Vertex answers questions with cited sources."><b>Sync</b><span>Jira, audit, chat</span></button>
+      </div>
+      <div class="panel" id="pipe-detail"><p>Minutes, tickets and status reports, in French or English, read by a model running on the laptop (Ollama). Names, emails and phones are masked first; instructions hidden in documents are quarantined.</p></div>
+      <div class="panel">
+        <h3>Trust by design</h3>
+        <ul><li>No invention: a fact without a matching source sentence is rejected.</li><li>No guessing: only attributes and systems known to the ontology.</li>
+        <li>No silent change: nothing reaches the model or Jira without approval.</li><li>No data leaving: local model, masking, injection quarantine, audit log.</li></ul>
+      </div>
+      <a class="btn" href="http://localhost:8501" target="_blank" rel="noopener" style="align-self:flex-start">Open the live cockpit</a>
+    </div>
+    <div class="dial">
+      <span class="small">Try it: part description, maximum length in PLM</span>
+      <div class="val"><span id="wv">80</span><small>characters</small></div>
+      <input id="wr" type="range" min="20" max="140" step="1" value="80" aria-label="Maximum length in PLM">
+      <div class="ticks"><span>20</span><span>SAP 40</span><span>today 80</span><span>MES 100</span><span>140</span></div>
+      <div class="lanes" style="gap:10px">
+        <div class="lane compact"><div><div class="t">INT-01, PLM to SAP</div><div class="d">SAP holds 40 characters</div></div><span class="status" id="s1"></span></div>
+        <div class="lane compact"><div><div class="t">INT-02, PLM to MES</div><div class="d">MES holds 100 characters</div></div><span class="status" id="s2"></span></div>
+        <div class="lane compact"><div><div class="t">TC-205, length check</div><div class="d">Test data written for 80</div></div><span class="status" id="s3"></span></div>
+        <div class="lane compact"><div><div class="t">US-501, naming rule</div><div class="d">“SHAFT, OUTPUT, D32 L210”</div></div><span class="status" id="s4"></span></div>
+      </div>
+      <p class="small" style="margin-top:auto">Same rules as the engine. Direct impact: 5 user stories, 4 test cases.</p>
+    </div>
+  </div>
+  <div class="foot"><span>Vertex Hub</span><span class="pg"></span></div>
+</section>
+
+<!-- 3 PROOF AND BUSINESS -->
+<section class="slide" data-title="Proof and business">
+  <h2>Measured on our demo project, and built to sell.</h2>
+  <div class="s3grid" style="grid-template-columns:1fr 1fr 1fr">
+    <div style="display:flex;flex-direction:column;gap:18px">
+      <div class="panel">
+        <h3>Extraction quality</h3>
+        <table class="mini"><tr><th>Extractor</th><th>Seen (8)</th><th>Holdout (4)</th></tr>
+          <tr><td>Rules only</td><td>8</td><td>0</td></tr>
+          <tr><td>Local model</td><td class="placeholder">[__]</td><td class="placeholder">[__]</td></tr>
+          <tr><td>Hybrid</td><td class="placeholder">[__]</td><td class="placeholder">[__]</td></tr></table>
+        <p class="small">Holdout written after the rules, with paraphrases. Fill from tools/llm_eval.py.</p>
+      </div>
+      <div class="panel">
+        <h3>The seven pillars, covered</h3>
+        <div class="checks"><span>Ecosystem: 27 features for a new client</span><span>Ontology: 15 concepts, FR/EN</span><span>Ingestion: 7 sources</span>
+          <span>Decision support: trade-offs</span><span>Security: 35 details masked</span><span>Agnostic: 3 PLM editors</span><span>Billing: this slide</span></div>
+      </div>
+    </div>
+    <div class="panel">
+      <span class="num">Business model</span><h3>Build once per client, run per project</h3>
+      <table class="mini" style="margin-top:6px">
+        <tr><td><b>Build</b><br>Connectors, editor vocabulary, tailored catalogue</td><td class="placeholder">[€__] fixed</td></tr>
+        <tr><td><b>Run</b><br>Local model on client or sovereign cloud, profile updates, alerts</td><td class="placeholder">[€__] per project per month</td></tr>
+        <tr><td><b>Support</b><br>New connectors, ontology extensions, model upgrades</td><td class="placeholder">[€__] per year</td></tr></table>
+      <p style="margin-top:6px"><b>Revenue:</b> bundled into PLM integration deals; margin on fixed-price projects; catalogue and ontologies reused across clients.</p>
+      <p class="small"><b>Costs:</b> local model compute; upkeep of connectors and editor profiles.</p>
+    </div>
+    <div class="panel">
+      <span class="num">Next 90 days</span><h3>From demo to pilot</h3>
+      <ul><li><b>Month 1, pilot:</b> one live PLM project; measure onboarding time and conflicts caught before test.</li>
+        <li><b>Month 2, connect:</b> Windchill, Teamcenter, SAP and Jira Cloud connectors.</li>
+        <li><b>Month 3, scale:</b> ontology aligned with ISO 10303 AP242 and ECLASS; a second industry.</li></ul>
+      <p class="small" style="margin-top:auto">[Name], PLM lead; [Name], [Name], [Name], data and AI; [Name], medical engineering; [Name], [Name], security</p>
+    </div>
+  </div>
+  <div class="foot"><span>Vertex Hub. Built for the Capgemini DPM &amp; PLM Hackathon</span><span class="pg"></span></div>
+</section>
+
+</div></div>
+
+<div id="progress"></div>
+<div id="hud"><button id="b-prev" aria-label="Previous slide">Previous</button><button id="b-ov">Overview (O)</button><button id="b-fs">Full screen (F)</button><button id="b-next" aria-label="Next slide">Next</button></div>
+<div id="overview" aria-label="All slides"></div>
+
+<script>
+(() => {
+  const slides = [...document.querySelectorAll('.slide')];
+  const stage = document.getElementById('stage');
+  let i = Math.max(0, Math.min(slides.length - 1, (parseInt(location.hash.slice(1)) || 1) - 1));
+
+  const fit = () => { const s = Math.min(innerWidth / 1600, innerHeight / 900); stage.style.transform = `scale(${s})`; };
+  addEventListener('resize', fit); fit();
+
+  slides.forEach((s, k) => { const pg = s.querySelector('.pg'); if (pg) pg.textContent = `${k + 1} / ${slides.length}`; });
+
+  const show = n => {
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach((s, k) => s.classList.toggle('on', k === i));
+    document.getElementById('progress').style.width = `${(i + 1) / slides.length * 100}%`;
+    history.replaceState(null, '', `#${i + 1}`);
+  };
+
+  const ov = document.getElementById('overview');
+  slides.forEach((s, k) => {
+    const b = document.createElement('button');
+    b.innerHTML = `<span>${k + 1}</span>${s.dataset.title}`;
+    b.onclick = () => { ov.classList.remove('on'); show(k); };
+    ov.appendChild(b);
+  });
+  const toggleOv = () => ov.classList.toggle('on');
+  const fs = () => document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen();
+
+  addEventListener('keydown', e => {
+    if (e.target.tagName === 'INPUT') return;
+    if (['ArrowRight', 'PageDown', ' '].includes(e.key)) { e.preventDefault(); show(i + 1); }
+    else if (['ArrowLeft', 'PageUp'].includes(e.key)) { e.preventDefault(); show(i - 1); }
+    else if (e.key === 'Home') show(0);
+    else if (e.key === 'End') show(slides.length - 1);
+    else if (e.key.toLowerCase() === 'o' || e.key === 'Escape') toggleOv();
+    else if (e.key.toLowerCase() === 'f') fs();
+  });
+  document.getElementById('b-prev').onclick = () => show(i - 1);
+  document.getElementById('b-next').onclick = () => show(i + 1);
+  document.getElementById('b-ov').onclick = toggleOv;
+  document.getElementById('b-fs').onclick = fs;
+  let x0 = null;
+  addEventListener('touchstart', e => x0 = e.touches[0].clientX);
+  addEventListener('touchend', e => { if (x0 === null) return; const dx = e.changedTouches[0].clientX - x0; if (Math.abs(dx) > 50) show(i + (dx < 0 ? 1 : -1)); x0 = null; });
+
+  // pipeline: click a step to read what it does
+  const detail = document.getElementById('pipe-detail');
+  document.querySelectorAll('#pipe button').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('#pipe button').forEach(x => x.classList.remove('sel'));
+    b.classList.add('sel');
+    detail.innerHTML = `<p>${b.dataset.d}</p>`;
+  }));
+
+  // what-if: same directional rules as the impact engine (data flowing into a shorter field is cut)
+  const ERP = 40, MES = 100, TESTED = 80;
+  const set = (id, cls, text) => { const el = document.getElementById(id); el.className = `status ${cls}`; el.textContent = text; };
+  const run = () => {
+    const v = +document.getElementById('wr').value;
+    document.getElementById('wv').textContent = v;
+    v > ERP ? set('s1', 'bad', `cut: ${v} into ${ERP}`) : set('s1', 'ok', 'fits');
+    v > MES ? set('s2', 'bad', `cut: ${v} into ${MES}`) : set('s2', 'ok', 'fits');
+    v === TESTED ? set('s3', 'ok', 'up to date') : set('s3', 'warn', `test data says ${TESTED}`);
+    v < TESTED ? set('s4', 'warn', 'rule must be shortened') : set('s4', 'ok', 'rule holds');
+  };
+  document.getElementById('wr').addEventListener('input', run); run();
+
+  show(i);
+})();
+</script>
+</body>
+</html>

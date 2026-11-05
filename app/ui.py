@@ -5,6 +5,10 @@ from html import escape
 BRAND = "Vertex Hub"
 ACRONYM = "V.E.R.T.E.X. AI: Value Extraction and Reconciliation for Technical Excellence"
 TAGLINE = "The intersection of PLM ontologies and agile delivery."
+PARTNER = "Capgemini"
+PARTNER_LINE = "Built for the Capgemini DPM & PLM Hackathon"
+# Drop the official partner logo here (PNG, transparent background). Shown in the sidebar when present.
+PARTNER_LOGO = "partner-logo.png"
 
 CSS = """
 <style>

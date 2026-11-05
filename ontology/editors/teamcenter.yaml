@@ -1,0 +1,15 @@
+# Editor vocabulary profile for Siemens Teamcenter.
+# Type names follow common Teamcenter usage; validate exact names with the PLM lead.
+editor: Siemens Teamcenter
+version: "2412"
+types:
+  C-PART:  { type: Item / Item Revision, label: Item }
+  C-EBOM:  { type: BOM View Revision (design), label: Engineering BOM }
+  C-MBOM:  { type: BOM View Revision (manufacturing), label: Manufacturing BOM }
+  C-PBOM:  { type: Bill of Process (Manufacturing Process Planner), label: Bill of Process }
+  C-OP:    { type: Operation, label: Operation }
+  C-WC:    { type: Work Area / Resource, label: Work Area }
+  C-CR:    { type: Change Request (ECR), label: Change Request }
+  C-CO:    { type: Change Notice (ECN), label: Change Notice }
+  C-CA:    { type: Change Notice task, label: Change Notice task }
+maturity_states: [Working, Pending, Released, Obsolete]

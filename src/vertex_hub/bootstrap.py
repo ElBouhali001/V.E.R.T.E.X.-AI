@@ -3,7 +3,7 @@ import pandas as pd
 
 from .data import load_yaml
 
-EDITOR_PROFILES = {"Windchill": "windchill.yaml", "3DEXPERIENCE": "3dexperience_R2025x.yaml"}
+EDITOR_PROFILES = {"Windchill": "windchill.yaml", "3DEXPERIENCE": "3dexperience_R2025x.yaml", "Teamcenter": "teamcenter.yaml"}
 
 
 def bootstrap(root, client):

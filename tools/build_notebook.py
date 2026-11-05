@@ -219,6 +219,18 @@ display(SVG(svg))
 check("impact map renders", svg.startswith("<svg"))
 """)
 
+md("## 9b. Ask Vertex and the setup assistant\nAnswers come only from the graph; cited ids are checked. Without the model, a graph answer is returned.")
+code(r"""
+from vertex_hub.assistant import answer, setup_profile
+for q in ["What is a Plant BOM?", "Pourquoi les désignations article sont-elles tronquées ?", "Which decisions are waiting?"]:
+    r = answer(twin, q)
+    print(f"Q: {q}\n[{r['engine']}] {r['answer']}\nsources: {r['cited']}  unverified: {r['unverified']}\n")
+check("assistant cites only ids from the graph", all(not answer(twin, q)["unverified"] for q in ["What is a Plant BOM?"]))
+prof = setup_profile("Nordwind Aero builds aircraft seats, runs Teamcenter, works in SAFe and has no MES yet")
+print(prof)
+check("setup assistant builds a Teamcenter profile", prof["landscape"]["plm"]["product"] == "Teamcenter")
+""")
+
 md("## 10. Health report")
 code(r"""
 report = pd.DataFrame(CHECKS)

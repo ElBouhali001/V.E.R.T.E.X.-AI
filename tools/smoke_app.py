@@ -71,6 +71,7 @@ def fake_streamlit(page_title, press=(), state=None):
     st.segmented_control.side_effect = lambda label, options, format_func=str, default=None, **kw: default
     st.text_input.side_effect = lambda label, value="", **kw: value
     st.text_area.side_effect = lambda label, value="", **kw: value
+    st.chat_input.side_effect = lambda *a, **kw: None
     st.number_input.side_effect = lambda label, value=0, **kw: value
     st.date_input.side_effect = lambda label, value=None, **kw: value
     st.button.side_effect = pressed
@@ -104,7 +105,7 @@ def run(page, press=(), state=None):
 if __name__ == "__main__":
     import matplotlib
     matplotlib.use("Agg")
-    pages = ["Cockpit", "Documents", "Impact", "Decisions", "Glossary", "New client", "AI quality"]
+    pages = ["Cockpit", "Documents", "Impact", "Decisions", "Ask Vertex", "Glossary", "New client", "AI quality"]
     for page in pages:
         run(page)
         print("ok   render", page)
@@ -128,6 +129,13 @@ if __name__ == "__main__":
     for page in pages:
         run(page)                      # every page still renders after decisions
     run("Glossary", press=("Propose",))
+    st_state = State()
+    run("Ask Vertex", press=("What is a Plant BOM?",), state=st_state)
+    assert st_state["chat"] and "C-PBOM" in st_state["chat"][0]["cited"], st_state.get("chat")
+    run("Ask Vertex", state=st_state)
+    nc = State()
+    run("New client", press=("Build the starter backlog",), state=nc)
+    assert nc["described"]["landscape"]["plm"]["product"] == "Teamcenter"
     run("Cockpit", press=("Show impact",))
     run("AI quality", press=("Read",))
     print("ok   clicks: approve -> 9 drafts, reject, send -> 9 sent, propose, navigate, analyse; all pages re-render")

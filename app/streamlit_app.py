@@ -14,6 +14,7 @@ import streamlit as st  # noqa: E402
 
 import ui  # noqa: E402
 from vertex_hub import llm, run_pipeline  # noqa: E402
+from vertex_hub.assistant import answer, setup_profile  # noqa: E402
 from vertex_hub.bootstrap import bootstrap  # noqa: E402
 from vertex_hub.data import load_yaml  # noqa: E402
 from vertex_hub.decisions import send_outbox  # noqa: E402
@@ -40,6 +41,7 @@ ss.setdefault("mode", "hybrid" if LLM["ok"] else "rules")
 ss.setdefault("doc", next(iter(twin.sanitized)))
 ss.setdefault("attr", "ATT-DESC")
 ss.setdefault("proposed_terms", [])
+ss.setdefault("chat", [])
 MODE_LABEL = {"rules": "Rules", "ai": "Local AI", "hybrid": "Hybrid"}
 SYS = {"SYS-PLM": "PLM", "SYS-ERP": "ERP", "SYS-MES": "MES", "SYS-CAD": "CAD", "SYS-JIRA": "Jira"}
 
@@ -115,6 +117,10 @@ with st.sidebar:
         ss.clear()
         st.rerun()
     st.caption(ui.TAGLINE)
+    st.divider()
+    if (ASSETS / ui.PARTNER_LOGO).exists():
+        st.image(str(ASSETS / ui.PARTNER_LOGO), width=140)
+    st.caption(ui.PARTNER_LINE)
 
 
 # ------------------------------------------------------------------ cockpit
@@ -383,6 +389,49 @@ def page_decisions():
         st.dataframe(twin.audit.df(), hide_index=True, width="stretch")
 
 
+# ------------------------------------------------------------------ ask
+SUGGESTED = ["What is a Plant BOM?", "Why are part descriptions truncated?",
+             "Que se passe-t-il si l'ERP passe la masse en grammes ?", "Which decisions are waiting?"]
+
+
+def ask(question):
+    r = answer(twin, question, ss.mode)
+    ss.chat.append({"q": question, **r})
+
+
+def page_ask():
+    st.markdown(ui.hero("Ask Vertex", "Questions about the project, answered only from the project graph, with the sources each answer used."),
+                unsafe_allow_html=True)
+    st.write("")
+    if not ss.chat:
+        st.caption("Try one of these")
+        cols = st.columns(len(SUGGESTED))
+        for c, q in zip(cols, SUGGESTED):
+            if c.button(q, key=f"sug-{q}", width="stretch"):
+                ask(q)
+                st.rerun()
+    for turn in ss.chat:
+        with st.chat_message("user"):
+            st.markdown(turn["q"])
+        with st.chat_message("assistant", avatar=str(ASSETS / "vertex-mark-128.png")):
+            st.markdown(turn["answer"])
+            how = "local model, grounded in the graph" if turn["engine"].startswith("ai") else "project graph, no model"
+            st.caption(f"Answered by: {how}. Sources: {', '.join(turn['cited']) or 'none'}.")
+            if turn["unverified"]:
+                st.warning(f"Cited but not in the project data, ignore: {', '.join(turn['unverified'])}", icon=":material/warning:")
+            if turn["cited"]:
+                with st.expander("Show sources"):
+                    for c in turn["cited"]:
+                        st.markdown(f"**{c}**: {ui.escape(turn['context'][c])}", unsafe_allow_html=True)
+    q = st.chat_input("Ask about attributes, documents, alerts, decisions or the glossary")
+    if q:
+        ask(q)
+        st.rerun()
+    if ss.chat and st.button("Clear the conversation", type="tertiary"):
+        ss.chat = []
+        st.rerun()
+
+
 # ------------------------------------------------------------------ glossary
 def page_glossary():
     st.markdown(ui.hero("Glossary", "One concept, every name it goes by: ours, the editor's, the client's, in English and French."),
@@ -416,9 +465,24 @@ def page_new_client():
     st.markdown(ui.hero("New client", "A client profile, our capability catalogue and the editor's vocabulary give a starter backlog in seconds."),
                 unsafe_allow_html=True)
     st.write("")
-    clients = sorted(d.name for d in (ROOT / "data").iterdir() if (d / "client_profile.yaml").exists())
-    cid = st.selectbox("Client profile", clients, index=clients.index("medtech") if "medtech" in clients else 0)
-    prof = load_yaml(ROOT / "data" / cid / "client_profile.yaml")["client"]
+    t1, t2 = st.tabs(["Describe the client", "From a saved profile"])
+    with t1:
+        desc = st.text_area("In one or two sentences, in English or French",
+                            "Nordwind Aero builds aircraft seats, runs Teamcenter, works in SAFe and has no MES yet.", height=90)
+        if st.button("Build the starter backlog", type="primary", icon=":material/auto_awesome:"):
+            with st.spinner("Reading the description"):
+                ss.described = setup_profile(desc)
+                twin.audit.log("setup_assistant", None, {"description": desc[:300], "profile": ss.described})
+    with t2:
+        clients = sorted(d.name for d in (ROOT / "data").iterdir() if (d / "client_profile.yaml").exists())
+        cid = st.selectbox("Client profile", clients, index=clients.index("medtech") if "medtech" in clients else 0)
+        if st.button("Use this profile"):
+            ss.described = None
+            ss.saved_cid = cid
+    prof = ss.get("described") or load_yaml(ROOT / "data" / ss.get("saved_cid", "medtech") / "client_profile.yaml")["client"]
+    cid = prof["name"].lower().replace(" ", "_")
+    if ss.get("described"):
+        st.caption(f"Understood from the description ({prof['source']}). Check it before sharing the backlog.")
     land = prof["landscape"]
     st.markdown("".join(ui.pill(x) for x in [prof["name"], prof["industry"], land["plm"]["product"], prof["delivery_framework"],
                                               f"MES: {land['mes']['product']}"]), unsafe_allow_html=True)
@@ -467,6 +531,7 @@ PAGES = {
     "docs": st.Page(page_documents, title="Documents", icon=":material/description:"),
     "impact": st.Page(page_impact, title="Impact", icon=":material/account_tree:"),
     "decisions": st.Page(page_decisions, title="Decisions", icon=":material/gavel:"),
+    "ask": st.Page(page_ask, title="Ask Vertex", icon=":material/forum:"),
     "glossary": st.Page(page_glossary, title="Glossary", icon=":material/translate:"),
     "client": st.Page(page_new_client, title="New client", icon=":material/add_business:"),
     "quality": st.Page(page_quality, title="AI quality", icon=":material/insights:"),

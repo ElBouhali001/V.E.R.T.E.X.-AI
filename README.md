@@ -1,6 +1,7 @@
 <p><img src="app/assets/vertex-wordmark.png" alt="Vertex Hub" width="520"></p>
 
 **V.E.R.T.E.X. AI**: Value Extraction and Reconciliation for Technical Excellence.
+Built for the Capgemini DPM & PLM Hackathon (project P1, AI-driven Project Accelerator).
 
 Vertex Hub keeps a PLM project's knowledge connected across PLM, ERP, MES and the backlog. It reads
 meeting minutes, tickets and documents, maps every client's vocabulary to one ontology, and shows what a
@@ -20,6 +21,7 @@ src/vertex_hub/          THE PROJECT: all logic lives here
   extract.py           rules / AI / hybrid extraction, normalisation, quote repair, anti-hallucination gate
   impact.py            conflicts, trade-offs, version upgrades
   alerts.py            alerts merged across sources, severity, first-seen date
+  assistant.py         Ask Vertex (grounded Q&A with checked citations) + setup assistant
   decisions.py         approve / reject, model update, Jira outbox
   connectors.py        Jira mock + Jira Cloud (env vars)
   viz.py               impact map (SVG)
@@ -28,8 +30,8 @@ src/vertex_hub/          THE PROJECT: all logic lives here
   pipeline.py          Twin: wires everything, used by app, notebook and tests
 app/                   the cockpit (streamlit_app.py + ui.py + assets/ logo), imports src
 .streamlit/config.toml theme
-notebooks/01_pipeline_check.ipynb   parallel check notebook (imports src, 25 checks)
-tests/                 22 automated tests (incl. a fake imperfect model)
+notebooks/01_pipeline_check.ipynb   parallel check notebook (imports src, 27 checks)
+tests/                 30 automated tests (incl. a fake imperfect model)
 tools/                 validator, notebook builder, app smoke test, llm_eval
 data/ ontology/ catalog/            the inputs
 cache/                 AI answers + Jira mock (git-ignored, safe to delete)
@@ -45,18 +47,30 @@ source .venv/bin/activate
 pip install -r requirements.txt
 
 python tools/validate_dataset.py   # data is consistent  -> OK
-pytest                             # logic works         -> 22 passed
+pytest                             # logic works         -> 30 passed
 ```
 
 Then two terminal tabs (each runs until Ctrl+C):
 
 ```bash
-jupyter lab notebooks/01_pipeline_check.ipynb   # tab 1: Run All -> "25/25 checks passed"
+jupyter lab notebooks/01_pipeline_check.ipynb   # tab 1: Run All -> "27/27 checks passed"
 streamlit run app/streamlit_app.py              # tab 2: the cockpit, http://localhost:8501
 ```
 
 The notebook uses `%autoreload`: edit a file in `src/`, re-run the cell, it picks up the change.
 After changing app code, Streamlit offers "Rerun" in the browser. Before every push: `pytest`.
+
+## Pitch
+
+`pitch/index.html` is the 3-slide presentation: open it in a browser, no server needed. Arrow keys or
+space to move, F for full screen. Slide 2 has a clickable pipeline, a live what-if slider and a button to
+the running cockpit. Put the official Capgemini logo next to it as
+`pitch/capgemini-logo.png`. Orange `[__]` values are placeholders: fill them from `tools/llm_eval.py` and the team.
+
+## Partner logo
+
+Put the official Capgemini logo at `app/assets/partner-logo.png` (PNG, transparent background, from the
+organisers or Capgemini's brand resources). The sidebar shows it automatically; without it, a text line is shown.
 
 ## Local AI (Ollama)
 
