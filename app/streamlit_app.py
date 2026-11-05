@@ -97,7 +97,7 @@ with st.sidebar:
                                   help="Rules: fast and transparent. Local AI: the model on this machine. Hybrid: both, checked by the same gate.")
     if picked and picked != ss.mode:
         ss.mode = picked
-    installed = [m for m in (LLM.get("models") or []) if "embed" not in m]
+    installed = LLM.get("models") or []
     if installed:
         cur = LLM["model"] if LLM["model"] in installed else None
         chosen = st.selectbox("Local model", installed, index=installed.index(cur) if cur else 0,

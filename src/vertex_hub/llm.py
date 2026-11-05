@@ -24,24 +24,43 @@ def ollama_url():
     return os.getenv("OLLAMA_URL", "http://localhost:11434").rstrip("/")
 
 
-def installed_models(max_age=20):
-    """Models installed in Ollama (cached a few seconds; None if Ollama is not reachable)."""
+def _tags(max_age=20):
+    """Raw /api/tags entries (cached a few seconds; None if Ollama is not reachable)."""
     import time
     if time.time() - _TAGS["t"] > max_age:
         try:
             with urllib.request.urlopen(ollama_url() + "/api/tags", timeout=2) as r:
-                _TAGS["models"] = [m["name"] for m in json.loads(r.read()).get("models", [])]
+                _TAGS["models"] = json.loads(r.read()).get("models", [])
         except (urllib.error.URLError, OSError, ValueError):
             _TAGS["models"] = None
         _TAGS["t"] = time.time()
     return _TAGS["models"]
 
 
+def installed_models(max_age=20):
+    """Names of every model Ollama knows about, local or cloud-proxied (None if unreachable)."""
+    tags = _tags(max_age)
+    return None if tags is None else [m["name"] for m in tags]
+
+
+def local_chat_models(max_age=20):
+    """Names of models that both generate text and run entirely on this machine.
+
+    Excludes embedding-only models (no "completion" capability) and Ollama Cloud models
+    (they carry a remote_host and proxy the prompt to Ollama's servers over the network).
+    """
+    tags = _tags(max_age)
+    if tags is None:
+        return None
+    return [m["name"] for m in tags
+            if "completion" in m.get("capabilities", []) and not m.get("remote_host")]
+
+
 def config():
     backend = os.getenv("LLM_BACKEND", "ollama").lower()
     model = os.getenv("LLM_MODEL")
     if not model and backend == "ollama":
-        models = [m for m in (installed_models() or []) if "embed" not in m]
+        models = local_chat_models() or []
         model = next((m for m in OLLAMA_PREFERENCE if m in models), models[0] if models else None)
     return backend, model or DEFAULT_MODELS.get(backend, "")
 
@@ -52,7 +71,7 @@ def status():
     if backend == "none":
         return {"ok": False, "backend": backend, "model": "", "detail": "AI disabled (LLM_BACKEND=none)"}
     if backend == "ollama":
-        models = installed_models()
+        models = local_chat_models()
         if models is None:
             return {"ok": False, "backend": backend, "model": model,
                     "detail": f"Ollama not reachable at {ollama_url()}. Start the Ollama app, then `ollama pull {model}`."}
@@ -62,7 +81,7 @@ def status():
             base = model
         if model not in models and base not in models:
             return {"ok": False, "backend": backend, "model": model, "models": models,
-                    "detail": f"Model {model} not installed. Run `ollama pull {model}`."}
+                    "detail": f"Model {model} not installed locally (embedding-only and Ollama Cloud models don't count). Run `ollama pull {model}`."}
         return {"ok": True, "backend": backend, "model": model, "models": models, "detail": "local model ready"}
     key = {"openai": "OPENAI_API_KEY"}.get(backend)
     ok = bool(key and os.getenv(key))

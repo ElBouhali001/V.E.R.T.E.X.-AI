@@ -7,12 +7,15 @@ import datetime as dt
 import json
 import re
 import sqlite3
+from pathlib import Path
 
 import pandas as pd
 
 
 class Audit:
     def __init__(self, path=":memory:"):
+        if path != ":memory:":
+            Path(path).parent.mkdir(parents=True, exist_ok=True)
         self.db = sqlite3.connect(path, check_same_thread=False)
         self.db.execute("CREATE TABLE IF NOT EXISTS audit (ts TEXT, step TEXT, doc TEXT, detail TEXT)")
         self.db.execute("CREATE TABLE IF NOT EXISTS decisions (id TEXT, ts TEXT, status TEXT, doc TEXT, quote TEXT, change TEXT, "
@@ -31,13 +34,17 @@ class Audit:
 
 INJECTION_PATTERNS = [
     r"ignore (all )?(the )?(previous|prior|above) instructions",
-    r"disregard (all )?(previous|prior) instructions",
-    r"note for the ai", r"you are now", r"system prompt",
+    r"disregard (all )?(previous|prior|above) (instructions|guidelines|rules)",
+    r"override (your|the) (instructions|guidelines|rules)",
+    r"new instructions\b", r"note for the ai", r"you are now", r"system prompt",
+    r"act as (an?|the) (unrestricted|jailbroken|uncensored)",
+    r"reveal (your|the) (system prompt|instructions)",
     r"(send|email|forward|export|upload)\b.{0,80}\b(to|vers)\s+\S+@\S+",
     r"ignore[rz]? (toutes )?les instructions",
+    r"oublie[rz]? (toutes )?les instructions (pr[ée]c[ée]dentes|pr[ée]alables)",
 ]
 EMAIL = re.compile(r"[\w.+-]+@[\w-]+(?:\.[\w-]+)+")
-PHONE = re.compile(r"\+\d{1,3}(?:[ .]\d{1,2}){4,5}")
+PHONE = re.compile(r"\+\d{1,3}(?:[ .]\d{1,2}){4,5}|\b0\d(?:[ .]\d{2}){4}\b")
 NAME_ANCHOR = re.compile(r"\b([A-ZÀ-Ý][a-zà-ÿ]+ [A-ZÀ-Ý][a-zà-ÿ]+) \((?:Acme|consulting)")
 
 
