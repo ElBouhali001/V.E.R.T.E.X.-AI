@@ -2,10 +2,13 @@
 
 Usage: python tools/guardrails_eval.py
 
-Injection: precision/recall of is_injection() against deepset/prompt-injections (662 labelled rows).
+Injection: precision/recall of is_injection() against deepset/prompt-injections (662 labelled rows),
+reported separately for the train and test split. INJECTION_PATTERNS in guardrails.py was tuned by
+reading train-split misses only (see git history); the test-split number is the honest, held-out one
+-- quote that one, not train, in any report of how well this detects real injection attempts.
 Redaction: recall of Redactor against presidio-research's synthetic PERSON/EMAIL/PHONE spans (747 rows).
-Both sets are untouched by the detectors' own design, so this is an honest generalisation check,
-not the "does it find the planted demo scenarios" check tests/test_guardrails.py already covers.
+Both sets are untouched by the detectors' own design, so this is a generalisation check, not the
+"does it find the planted demo scenarios" check tests/test_guardrails.py already covers.
 """
 import json
 import sys
@@ -21,19 +24,15 @@ BENCH = ROOT / "tools" / "benchmarks"
 
 def eval_injection():
     rows = json.loads((BENCH / "injection" / "prompt_injections.json").read_text())
-    tp = fp = tn = fn = 0
-    for r in rows:
-        pred = is_injection(r["text"])
-        actual = bool(r["label"])
-        tp += pred and actual
-        fp += pred and not actual
-        tn += not pred and not actual
-        fn += not pred and actual
-    precision = tp / (tp + fp) if tp + fp else 0
-    recall = tp / (tp + fn) if tp + fn else 0
-    print(f"Injection  ({len(rows)} rows, {tp + fn} positive): "
-          f"precision {precision:.0%}  recall {recall:.0%}  (tp={tp} fp={fp} tn={tn} fn={fn})")
-    return recall
+    for split in ("train", "test"):
+        sub = [r for r in rows if r["split"] == split]
+        tp = sum(1 for r in sub if r["label"] == 1 and is_injection(r["text"]))
+        fp = sum(1 for r in sub if r["label"] == 0 and is_injection(r["text"]))
+        pos = sum(r["label"] for r in sub)
+        neg = len(sub) - pos
+        tag = "(tuned on this split)" if split == "train" else "(held-out -- the honest number)"
+        print(f"Injection  {split:5s} {tag}: recall {tp / pos:.0%} ({tp}/{pos})  "
+              f"false-positive rate {fp / neg:.1%} ({fp}/{neg})")
 
 
 def eval_redaction():
