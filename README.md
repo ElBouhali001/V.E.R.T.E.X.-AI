@@ -32,8 +32,9 @@ src/vertex_hub/          THE PROJECT: all logic lives here
 app/                   the cockpit (streamlit_app.py + ui.py + assets/ logo), imports src
 .streamlit/config.toml theme
 notebooks/01_pipeline_check.ipynb   parallel check notebook (imports src, 27 checks)
-tests/                 35 automated tests (incl. a fake imperfect model)
-tools/                 doctor, validator, notebook builder, app smoke test, llm_eval
+tests/                 44 automated tests (incl. a fake imperfect model)
+tools/                 doctor, validator, notebook builder, app smoke test, llm_eval, guardrails_eval + benchmarks/
+docs/                  threat model, GDPR and AI Act position (drafts for review)
 data/ ontology/ catalog/            the inputs
 cache/                 AI answers + Jira mock (git-ignored, safe to delete)
 ```
@@ -48,7 +49,7 @@ source .venv/bin/activate
 pip install -r requirements.txt
 
 python tools/validate_dataset.py   # data is consistent  -> OK
-pytest                             # logic works         -> 35 passed
+pytest                             # logic works         -> 44 passed
 ```
 
 Then two terminal tabs (each runs until Ctrl+C):
@@ -80,6 +81,14 @@ python tools/doctor.py --warm
 ```
 It checks Python, packages, data, datasets, the local model, AI extraction on a French document, the cache and
 Ask Vertex, and prints the fix for anything that fails. `--warm` reads every document once so the demo never waits.
+
+## Security evaluation
+
+`python tools/guardrails_eval.py` scores the guardrails on public benchmarks (prompt injection, synthetic personal
+data). Current held-out injection recall is 12% with 0 false positives, and 0 of 18 project-language sentences are
+wrongly blocked (`tests/test_guardrails.py`). The regex layer is the first of several: the model has no tools, its
+output is schema-checked, every fact must quote its source, and nothing changes without a person's approval.
+See `docs/threat-model.md`.
 
 ## Partner logo
 
