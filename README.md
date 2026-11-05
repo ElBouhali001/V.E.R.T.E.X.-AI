@@ -64,10 +64,8 @@ After changing app code, Streamlit offers "Rerun" in the browser. Before every p
 
 ## Pitch
 
-`pitch/index.html` is the 3-slide presentation: open it in a browser, no server needed. Arrow keys or
-space to move, F for full screen. Slide 2 has a clickable pipeline, a live what-if slider and a button to
-the running cockpit. Put the official Capgemini logo next to it as
-`pitch/capgemini-logo.png`. Orange `[__]` values are placeholders: fill them from `tools/llm_eval.py` and the team.
+`pitch/T103_DPLM_Slides.pdf` is the 3-slide presentation and `pitch/T103_DPLM_OnePager.pdf` the one-pager, both
+rebuilt with `python pitch/build_pdfs.py`. `pitch/demo_commands.txt` lists the commands and the questions for the live demo.
 
 ## Datasets and the AI check
 
