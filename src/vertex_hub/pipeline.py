@@ -1,5 +1,6 @@
 """One object that wires every step together. Used identically by the Streamlit app, the notebook and the tests."""
 from dataclasses import dataclass, field
+from pathlib import Path
 
 from . import llm
 from .alerts import build_alerts
@@ -21,6 +22,10 @@ class Twin:
 
     def __post_init__(self):
         p = self.project
+        # decisions/outbox (audit.db, in-memory) stay session-scoped -- tests, notebook re-runs and
+        # "Reset demo" all expect a clean decision slate. The audit trail (audit.log_db) is a durable
+        # evidence log that must survive both a restart and a reset, so it gets its own file.
+        self.audit = Audit(log_path=str(Path(p.root) / "cache" / "audit.db"))
         self.G = build_graph(p)
         self.glossary = Glossary(p)
         self.redactor = Redactor(p.corpus())
