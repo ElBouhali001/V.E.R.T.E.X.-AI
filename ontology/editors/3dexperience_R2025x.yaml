@@ -1,0 +1,20 @@
+# Editor vocabulary profile: maps canonical concepts to the editor's object types.
+# Type names follow common 3DEXPERIENCE usage; validate exact names with the PLM lead.
+editor: Dassault Systemes 3DEXPERIENCE
+version: R2025x
+types:
+  C-PART:  { type: VPMReference, label: Physical Product }
+  C-EBOM:  { type: VPMReference structure, label: Physical Product structure }
+  C-MBOM:  { type: Manufacturing Item, label: Manufacturing Item structure }
+  C-PBOM:  { type: Process / System / Operation, label: Bill of Process (BOP) }
+  C-OP:    { type: Header Operation, label: Operation }
+  C-WC:    { type: Resource, label: Resource }
+  C-CR:    { type: Change Request }
+  C-CO:    { type: Change Order }
+  C-CA:    { type: Change Action }
+  C-WI:    { type: Work Instruction }
+attributes:
+  ATT-DESC:    { field: V_description, max_length: 80 }
+  ATT-WEIGHT:  { field: V_mass, unit: kg }
+  ATT-OPLABEL: { field: V_Name, max_length: 60 }
+maturity_states: [Private, In Work, Frozen, Released, Obsolete]

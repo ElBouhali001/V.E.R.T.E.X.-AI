@@ -1,0 +1,31 @@
+# Synthetic client: all names, people and figures are invented for the hackathon.
+client:
+  id: acme
+  name: Acme Mobility
+  industry: automotive
+  segment: electric drive units (e-axles) for light commercial vehicles
+  sites:
+    - { id: SITE-LYO, name: Lyon assembly plant, country: FR }
+    - { id: SITE-SEV, name: Sevilla components plant, country: ES }
+  languages: [fr, en]          # documents arrive in both
+  delivery_framework: SAFe
+  framework_settings:
+    pi_length_weeks: 10
+    sprint_length_weeks: 2
+    current_pi: PI-2
+  tools:
+    backlog: Jira             # client constraint: Jira is the master for the backlog
+    documents: SharePoint
+  landscape:
+    plm: { editor: Dassault Systemes, product: 3DEXPERIENCE, version: R2025x, upgrade_planned: R2026x }
+    erp: { editor: SAP, product: S/4HANA }
+    mes: { editor: Dassault Systemes, product: DELMIA Apriso }
+    cad: { product: CATIA V5 and 3DEXPERIENCE CATIA }
+  data_classification:
+    default: confidential
+    restricted: [cad_geometry, supplier_prices, personal_data]
+  contacts:   # roles only; real names appear in MoMs and must be masked before the LLM
+    - { role: Client PLM product owner }
+    - { role: Client ERP lead }
+    - { role: Client MES lead }
+    - { role: Consulting project manager }

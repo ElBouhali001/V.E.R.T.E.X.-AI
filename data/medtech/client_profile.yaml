@@ -1,0 +1,22 @@
+# Second synthetic client, used only to show the bootstrapper on another industry and editor.
+client:
+  id: medtech
+  name: Helix Medical Devices
+  industry: medtech
+  segment: infusion pumps (class IIb medical devices)
+  sites:
+    - { id: SITE-GRE, name: Grenoble design and assembly, country: FR }
+  languages: [fr, en]
+  delivery_framework: Scrum
+  framework_settings:
+    sprint_length_weeks: 3
+  tools:
+    backlog: Azure DevOps
+    documents: SharePoint
+  landscape:
+    plm: { editor: PTC, product: Windchill, version: "13" }
+    erp: { editor: SAP, product: S/4HANA }
+    mes: { editor: none, product: paper travellers }
+  regulatory: [ISO 13485, EU MDR, FDA 21 CFR Part 820]
+  # Expected bootstrapper behaviour: adds Requirement management, V&V and AML capabilities,
+  # skips PBOM/BOP to MES (no MES), uses Windchill vocabulary (WTPart, Change Notice, Change Task).

@@ -1,0 +1,84 @@
+# Each attribute = one canonical concept, with its definition in every system that holds it.
+# SAP field names are standard S/4HANA fields; PLM and MES field names are illustrative.
+# PLANTED: ATT-DESC (PLM 80 vs ERP 40 chars), ATT-WEIGHT (kg vs g), ATT-OPLABEL (MES rename).
+attributes:
+  - id: ATT-PARTNO
+    canonical: Part Number
+    definitions:
+      SYS-PLM: { field: PartNumber, type: string, max_length: 20, pattern: "AM-[0-9]{6}" }
+      SYS-ERP: { field: MATNR, type: string, max_length: 40 }
+      SYS-MES: { field: ItemCode, type: string, max_length: 40 }
+  - id: ATT-DESC
+    canonical: Part Description
+    definitions:
+      SYS-PLM: { field: V_description, type: string, max_length: 80, languages: [fr, en] }
+      SYS-ERP: { field: MAKTX, type: string, max_length: 40, languages: [fr, en] }
+      SYS-MES: { field: ItemDescription, type: string, max_length: 100 }
+  - id: ATT-REV
+    canonical: Revision
+    definitions:
+      SYS-PLM: { field: revision, type: string, scheme: "A, B, C ..." }
+      SYS-ERP: { field: REVLV, type: string, max_length: 2 }
+  - id: ATT-UOM
+    canonical: Unit of Measure
+    definitions:
+      SYS-PLM: { field: UnitOfMeasure, type: enum, values: [EA, KG, M, L] }
+      SYS-ERP: { field: MEINS, type: enum, values: [ST, KG, M, L] }
+    note: PLM EA maps to SAP ST (piece)
+  - id: ATT-WEIGHT
+    canonical: Mass
+    definitions:
+      SYS-PLM: { field: V_mass, type: decimal, unit: kg, decimals: 3 }
+      SYS-ERP: { field: BRGEW, type: decimal, unit_field: GEWEI, unit: kg }
+      SYS-CAD: { field: Mass, type: decimal, unit: kg, computed: true }
+  - id: ATT-MAKEBUY
+    canonical: Make or Buy
+    definitions:
+      SYS-PLM: { field: MakeBuy, type: enum, values: [Make, Buy] }
+      SYS-ERP: { field: BESKZ, type: enum, values: [E, F] }
+    note: Make maps to E (in-house), Buy maps to F (external)
+  - id: ATT-MATERIAL
+    canonical: Material
+    definitions:
+      SYS-PLM: { field: Material, type: reference, source: material library }
+      SYS-ERP: { field: WRKST, type: string, max_length: 48 }
+      SYS-CAD: { field: Material, type: string }
+  - id: ATT-EFFDATE
+    canonical: Effectivity Date
+    definitions:
+      SYS-PLM: { field: EffectivityStart, type: date }
+      SYS-ERP: { field: DATUV, type: date }
+  - id: ATT-SERIAL
+    canonical: Serial Number Controlled
+    definitions:
+      SYS-PLM: { field: SerialControlled, type: boolean }
+      SYS-ERP: { field: SERNP, type: string, max_length: 4, note: serial number profile, empty if not serialised }
+  - id: ATT-LIFECYCLE
+    canonical: Maturity State
+    definitions:
+      SYS-PLM: { field: current, type: enum, values: [Private, In Work, Frozen, Released, Obsolete] }
+  - id: ATT-CLASS
+    canonical: Classification
+    definitions:
+      SYS-PLM: { field: classification, type: reference, source: part library }
+  - id: ATT-OPLABEL
+    canonical: Operation Label
+    definitions:
+      SYS-PLM: { field: V_Name, type: string, max_length: 60, object: operation }
+      SYS-MES: { field: OperationLabel, type: string, max_length: 60 }
+  - id: ATT-OPSEQ
+    canonical: Operation Sequence
+    definitions:
+      SYS-PLM: { field: SequenceNumber, type: integer, step: 10 }
+      SYS-MES: { field: OperationSequence, type: integer }
+  - id: ATT-WORKCENTER
+    canonical: Work Center
+    definitions:
+      SYS-PLM: { field: ResourceName, type: string, max_length: 40, object: resource }
+      SYS-ERP: { field: ARBPL, type: string, max_length: 8 }
+      SYS-MES: { field: WorkCenter, type: string, max_length: 8 }
+  - id: ATT-WI
+    canonical: Work Instruction
+    definitions:
+      SYS-PLM: { field: WorkInstruction, type: document, format: PDF or HTML }
+      SYS-MES: { field: WorkInstructionURL, type: url }

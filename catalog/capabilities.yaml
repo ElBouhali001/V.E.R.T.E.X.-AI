@@ -1,0 +1,55 @@
+# Reusable capability catalogue (from the brief's capability samples).
+# The bootstrapper picks capabilities by industry and generates Epics > Capabilities > Features > Stories.
+# relevance: core = always proposed; per-industry lists add the rest.
+families:
+  - id: F-CORE
+    name: Core data management
+    capabilities:
+      - { id: K-ACCESS, title: Access control management, relevance: core, features: [Role-based access to PLM objects, Organisation and project spaces] }
+      - { id: K-IP, title: IP protection management, relevance: [automotive, aerospace, medtech], features: [Export-control flags on parts, Restricted sharing with suppliers] }
+      - { id: K-LIFECYCLE, title: Lifecycle and workflow management, relevance: core, features: [Maturity states and promotion rules, Approval workflows] }
+  - id: F-XCAD
+    name: xCAD integration
+    capabilities:
+      - { id: K-MCAD, title: Multi-CAD integration, relevance: core, features: [CAD check-in and check-out, CAD lock and unlock] }
+      - { id: K-ECAD, title: ECAD and MCAD collaboration, relevance: [automotive, medtech, electronics], features: [Board outline exchange, ECAD library sync] }
+  - id: F-PPM
+    name: Program and project management
+    capabilities:
+      - { id: K-WBS, title: Program and project structure (WBS and deliverables), relevance: core, features: [WBS templates, Deliverable tracking] }
+      - { id: K-RISK, title: Risk management, relevance: core, features: [Risk register linked to PLM objects] }
+      - { id: K-ISSUE, title: Issue and claim tracking, relevance: core, features: [Issue workflow linked to parts] }
+  - id: F-SE
+    name: Systems engineering
+    capabilities:
+      - { id: K-REQ, title: Requirement management, relevance: [aerospace, medtech, automotive], features: [Requirement capture and allocation, Requirement to test traceability] }
+      - { id: K-MBSE, title: MBSE integration (functional and logical), relevance: [aerospace, automotive], features: [Functional and logical architecture links] }
+      - { id: K-VV, title: Verification and validation management, relevance: [medtech, aerospace], features: [Test plans linked to requirements, Design history file export] }
+  - id: F-CM
+    name: Configuration management
+    capabilities:
+      - { id: K-CHANGE, title: Engineering change management (CR/CO/CA), relevance: core, features: [Change request intake, Change order approval, Change action execution] }
+      - { id: K-CONFIG, title: Configuration management (effectivity, variants, options), relevance: [automotive, aerospace], features: [Date and serial effectivity, Variant and option rules] }
+  - id: F-XBOM
+    name: xBOM management
+    capabilities:
+      - { id: K-EBOM, title: EBOM management, relevance: core, features: [EBOM authoring, EBOM release] }
+      - { id: K-MBOM, title: MBOM management, relevance: [automotive, aerospace, industrial], features: [MBOM generation from EBOM, MBOM publication to ERP] }
+      - { id: K-PBOM, title: PBOM / BOP management, relevance: [automotive, aerospace, industrial], features: [Process BOM authoring, BOP publication to MES, Work instruction publication] }
+      - { id: K-CLASS, title: Classification and reuse, relevance: core, features: [Part classification, Duplicate part detection] }
+  - id: F-SRC
+    name: Sourcing management
+    capabilities:
+      - { id: K-SUPPLIER, title: Supplier management, relevance: core, features: [Supplier collaboration space] }
+      - { id: K-AML, title: Manufacturer part and AML management, relevance: [medtech, electronics, aerospace], features: [Approved manufacturer list per part] }
+
+# Story template used by the generator for each feature:
+story_template: "As a {persona}, I want {feature_goal}, so that {benefit}."
+personas_by_family:
+  F-CORE: data steward
+  F-XCAD: design engineer
+  F-PPM: project manager
+  F-SE: systems engineer
+  F-CM: change manager
+  F-XBOM: manufacturing engineer
+  F-SRC: buyer

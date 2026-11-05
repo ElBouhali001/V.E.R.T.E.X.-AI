@@ -1,0 +1,143 @@
+# Bilingual glossary: one canonical concept, the words each party uses for it.
+# "consultant" = our delivery framework vocabulary; "editor" = the PLM vendor's term;
+# "client" = what Acme Mobility people actually say in meetings.
+# PLANTED: "Plant BOM" (client) = PBOM (us) = BOP (editor); "désignation article" = Part Description.
+concepts:
+  - id: C-PBOM
+    canonical: Process BOM
+    definition_en: Operations, stations and resources needed to build the product.
+    definition_fr: Opérations, postes et ressources nécessaires pour fabriquer le produit.
+    terms:
+      consultant: [PBOM, Process BOM]
+      editor: [BOP, Bill of Process]
+      client: [Plant BOM, gamme usine]
+      fr: [gamme de fabrication, nomenclature process]
+  - id: C-MBOM
+    canonical: Manufacturing BOM
+    definition_en: The product structure as it will be built, including consumables and assembly order.
+    definition_fr: La structure produit telle que fabriquée, consommables et ordre d'assemblage inclus.
+    terms:
+      consultant: [MBOM]
+      editor: [Manufacturing Item structure]
+      client: [nomenclature de fab, BOM SAP]
+      fr: [nomenclature de fabrication]
+  - id: C-EBOM
+    canonical: Engineering BOM
+    definition_en: The product structure as designed by engineering.
+    definition_fr: La structure produit telle que conçue par le bureau d'études.
+    terms:
+      consultant: [EBOM]
+      editor: [Physical Product structure]
+      client: [BOM BE, nomenclature BE]
+      fr: [nomenclature d'études]
+  - id: C-PART
+    canonical: Part
+    definition_en: A uniquely numbered item managed in PLM.
+    definition_fr: Un article identifié par un numéro unique et géré dans le PLM.
+    terms:
+      consultant: [Part]
+      editor: [Physical Product, VPMReference]
+      client: [article, pièce, material]
+      fr: [article, pièce]
+  - id: C-CR
+    canonical: Change Request
+    definition_en: A request to change a released item, before approval.
+    definition_fr: Une demande de modification d'un article validé, avant approbation.
+    terms:
+      consultant: [CR, ECR]
+      editor: [Change Request]
+      client: [demande de modif, DM]
+      fr: [demande de modification]
+  - id: C-CO
+    canonical: Change Order
+    definition_en: The approved decision to implement one or more change requests.
+    definition_fr: La décision approuvée de mettre en oeuvre une ou plusieurs demandes.
+    terms:
+      consultant: [CO, ECO]
+      editor: [Change Order]
+      client: [ordre de modif, OM]
+      fr: [ordre de modification]
+  - id: C-CA
+    canonical: Change Action
+    definition_en: The unit of work that modifies items and releases them.
+    definition_fr: L'unité de travail qui modifie les articles et les valide.
+    terms:
+      consultant: [CA]
+      editor: [Change Action]
+      client: [action de modif]
+      fr: [action de modification]
+  - id: C-EFF
+    canonical: Effectivity
+    definition_en: From which date, serial number or lot a change applies.
+    definition_fr: À partir de quelle date, numéro de série ou lot une modification s'applique.
+    terms:
+      consultant: [Effectivity]
+      editor: [Effectivity]
+      client: [date d'application, applicabilité]
+      fr: [applicabilité]
+  - id: C-OP
+    canonical: Operation
+    definition_en: One step of the manufacturing process at a work center.
+    definition_fr: Une étape du processus de fabrication sur un poste de travail.
+    terms:
+      consultant: [Operation]
+      editor: [Operation, Header Operation]
+      client: [opé, étape]
+      fr: [opération]
+  - id: C-WC
+    canonical: Work Center
+    definition_en: A station or resource where an operation is performed.
+    definition_fr: Un poste ou une ressource où une opération est réalisée.
+    terms:
+      consultant: [Work Center]
+      editor: [Resource, Workplace]
+      client: [poste, station, poste de charge]
+      fr: [poste de travail, poste de charge]
+  - id: C-WI
+    canonical: Work Instruction
+    definition_en: The operator-facing instructions for an operation.
+    definition_fr: Les instructions destinées à l'opérateur pour une opération.
+    terms:
+      consultant: [Work Instruction, WI]
+      editor: [Work Instruction]
+      client: [fiche d'instruction, FI]
+      fr: [instruction de travail]
+  - id: C-AML
+    canonical: Approved Manufacturer List
+    definition_en: The manufacturers approved to supply a given part.
+    definition_fr: Les fabricants homologués pour fournir un article donné.
+    terms:
+      consultant: [AML]
+      editor: [Manufacturer Equivalent]
+      client: [liste fournisseurs homologués]
+      fr: [liste des fabricants homologués]
+  - id: C-DESC
+    canonical: Part Description
+    maps_to_attribute: ATT-DESC
+    definition_en: The short human-readable name of a part.
+    definition_fr: Le libellé court lisible d'un article.
+    terms:
+      consultant: [Part Description]
+      editor: [Description, V_description]
+      client: [désignation, désignation article, libellé article, MAKTX]
+      fr: [désignation article]
+  - id: C-MASS
+    canonical: Mass
+    maps_to_attribute: ATT-WEIGHT
+    definition_en: The mass of a part.
+    definition_fr: La masse d'un article.
+    terms:
+      consultant: [Mass, Weight]
+      editor: [Mass, V_mass]
+      client: [poids, poids brut, BRGEW]
+      fr: [masse, poids]
+  - id: C-OPLABEL
+    canonical: Operation Label
+    maps_to_attribute: ATT-OPLABEL
+    definition_en: The name of an operation shown to operators.
+    definition_fr: Le nom d'une opération affiché aux opérateurs.
+    terms:
+      consultant: [Operation Label]
+      editor: [Operation name, V_Name]
+      client: [libellé opé, Operation Label]
+      fr: [libellé d'opération]

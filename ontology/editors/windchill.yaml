@@ -1,0 +1,15 @@
+# Editor vocabulary profile for PTC Windchill (used by the medtech client).
+# Type names follow common Windchill usage; validate exact names with the PLM lead.
+editor: PTC Windchill
+version: "13"
+types:
+  C-PART:  { type: WTPart, label: Part }
+  C-EBOM:  { type: WTPart structure (Design view), label: Engineering BOM }
+  C-MBOM:  { type: WTPart structure (Manufacturing view), label: Manufacturing BOM }
+  C-PBOM:  { type: Process Plan (MPMLink), label: Process Plan }
+  C-OP:    { type: Operation (MPMLink), label: Operation }
+  C-WC:    { type: Resource (MPMLink), label: Resource }
+  C-CR:    { type: Change Request, label: Change Request }
+  C-CO:    { type: Change Notice, label: Change Notice }
+  C-CA:    { type: Change Task, label: Change Task }
+maturity_states: [In Work, Under Review, Released, Canceled, Obsolete]

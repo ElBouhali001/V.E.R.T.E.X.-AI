@@ -1,0 +1,18 @@
+# checks = attributes whose values the test asserts; exercises = interfaces it runs through.
+test_cases:
+  - { id: TC-101, verifies: US-101, jira_key: ACME-T101, title: Check-in creates a new iteration with part number and revision, checks: [ATT-PARTNO, ATT-REV], exercises: [INT-04], status: Passed }
+  - { id: TC-201, verifies: US-201, jira_key: ACME-T201, title: Part master created in SAP with the same part number and description as PLM, checks: [ATT-PARTNO, ATT-DESC], exercises: [INT-01], status: Passed }
+  - { id: TC-202, verifies: US-201, jira_key: ACME-T202, title: Unit EA in PLM becomes ST in SAP, checks: [ATT-UOM], exercises: [INT-01], status: Passed }
+  - { id: TC-203, verifies: US-201, jira_key: ACME-T203, title: Make maps to E and Buy maps to F, checks: [ATT-MAKEBUY], exercises: [INT-01], status: Not run }
+  - { id: TC-204, verifies: US-204, jira_key: ACME-T204, title: French and English descriptions both arrive in SAP, checks: [ATT-DESC], exercises: [INT-01], status: Not run }
+  - { id: TC-205, verifies: US-501, jira_key: ACME-T205, title: A description longer than the maximum length is rejected at creation, checks: [ATT-DESC], exercises: [], status: Passed, test_data: { max_length_tested: 80, system: SYS-PLM } }
+  - { id: TC-206, verifies: US-502, jira_key: ACME-T206, title: Mass of 1.250 kg in PLM arrives as 1.250 kg in SAP, checks: [ATT-WEIGHT], exercises: [INT-01], status: Not run }
+  - { id: TC-207, verifies: US-202, jira_key: ACME-T207, title: MBOM effectivity date is identical in SAP, checks: [ATT-EFFDATE], exercises: [INT-01], status: Not run }
+  - { id: TC-301, verifies: US-301, jira_key: ACME-T301, title: Approved ECO updates the SAP BOM from the effectivity date, checks: [ATT-EFFDATE, ATT-REV], exercises: [INT-01], status: Failed }
+  - { id: TC-302, verifies: US-302, jira_key: ACME-T302, title: Serial effectivity transferred for serial-controlled parts, checks: [ATT-SERIAL, ATT-EFFDATE], exercises: [INT-01], status: Not run }
+  - { id: TC-401, verifies: US-401, jira_key: ACME-T401, title: Operations arrive in MES in sequence order, checks: [ATT-OPSEQ, ATT-OPLABEL], exercises: [INT-02], status: Passed }
+  - { id: TC-402, verifies: US-402, jira_key: ACME-T402, title: Operation label in MES equals the PLM operation name, checks: [ATT-OPLABEL], exercises: [INT-02], status: Passed }
+  - { id: TC-403, verifies: US-403, jira_key: ACME-T403, title: Latest released work instruction shown for each operation, checks: [ATT-WI], exercises: [INT-02], status: Not run }
+  - { id: TC-404, verifies: US-404, jira_key: ACME-T404, title: Description at the station equals the SAP description, checks: [ATT-DESC], exercises: [INT-03], status: Not run }
+  - { id: TC-405, verifies: US-401, jira_key: ACME-T405, title: Work center code transferred to MES, checks: [ATT-WORKCENTER], exercises: [INT-02], status: Failed }
+  - { id: TC-503, verifies: US-503, jira_key: ACME-T503, title: Parts not in Released state are not transferred, checks: [ATT-LIFECYCLE], exercises: [INT-01], status: Passed }

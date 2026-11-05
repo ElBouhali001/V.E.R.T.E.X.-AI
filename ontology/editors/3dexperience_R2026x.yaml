@@ -1,0 +1,17 @@
+# ILLUSTRATIVE ONLY: the differences below are invented for the demo, not taken from real release notes.
+# They exist to show what happens when the client upgrades: the diff between two profiles is a change
+# like any other, and the impact engine lists what must be updated.
+editor: Dassault Systemes 3DEXPERIENCE
+version: R2026x
+inherits: R2025x
+changes:
+  - attribute: ATT-DESC
+    field: V_description
+    before: { max_length: 80 }
+    after:  { max_length: 128 }
+    note: invented change, demo only
+  - attribute: ATT-OPLABEL
+    field: V_Name
+    before: { max_length: 60 }
+    after:  { max_length: 100 }
+    note: invented change, demo only

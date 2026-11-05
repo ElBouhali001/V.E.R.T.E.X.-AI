@@ -1,0 +1,36 @@
+systems:
+  - { id: SYS-PLM, name: 3DEXPERIENCE (PLM), owner_team: PLM team, version: R2025x }
+  - { id: SYS-ERP, name: SAP S/4HANA (ERP), owner_team: ERP team }
+  - { id: SYS-MES, name: DELMIA Apriso (MES), owner_team: MES team }
+  - { id: SYS-CAD, name: CATIA (CAD), owner_team: PLM team }
+  - { id: SYS-JIRA, name: Jira (backlog), owner_team: Project office }
+
+interfaces:
+  - id: INT-01
+    name: Part master and EBOM/MBOM release, PLM to ERP
+    from: SYS-PLM
+    to: SYS-ERP
+    trigger: Change Action released
+    format: IDoc MATMAS / BOMMAT via middleware
+    carries: [ATT-PARTNO, ATT-DESC, ATT-REV, ATT-UOM, ATT-WEIGHT, ATT-MAKEBUY, ATT-MATERIAL, ATT-EFFDATE, ATT-SERIAL]
+  - id: INT-02
+    name: Process BOM (BOP) and work instructions, PLM to MES
+    from: SYS-PLM
+    to: SYS-MES
+    trigger: Process plan released
+    format: XML export
+    carries: [ATT-PARTNO, ATT-DESC, ATT-OPLABEL, ATT-OPSEQ, ATT-WORKCENTER, ATT-WI]
+  - id: INT-03
+    name: Production orders, ERP to MES
+    from: SYS-ERP
+    to: SYS-MES
+    trigger: Order released
+    format: REST
+    carries: [ATT-PARTNO, ATT-DESC, ATT-WORKCENTER]
+  - id: INT-04
+    name: CAD check-in, CAD to PLM
+    from: SYS-CAD
+    to: SYS-PLM
+    trigger: User check-in
+    format: native connector
+    carries: [ATT-PARTNO, ATT-REV, ATT-MATERIAL, ATT-WEIGHT]

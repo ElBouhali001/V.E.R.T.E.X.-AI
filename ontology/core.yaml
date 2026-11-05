@@ -1,0 +1,49 @@
+# Graph schema: what node and edge types exist. Every loader and the LLM output must conform.
+node_types:
+  System:      { id_prefix: SYS- }
+  Interface:   { id_prefix: INT- }
+  Attribute:   { id_prefix: ATT- }
+  Concept:     { id_prefix: C- }
+  Epic:        { id_prefix: EP- }
+  Capability:  { id_prefix: CAP- }
+  Feature:     { id_prefix: FEAT- }
+  UserStory:   { id_prefix: US- }
+  TestCase:    { id_prefix: TC- }
+  Document:    { id_prefix: DOC- }   # MoMs, status reports, specs
+  Decision:    { id_prefix: DEC- }   # extracted by the AI, approved by a human
+  Risk:        { id_prefix: RSK- }
+
+edge_types:
+  # structure
+  HAS_CAPABILITY: { from: Epic, to: Capability }
+  HAS_FEATURE:    { from: Capability, to: Feature }
+  HAS_STORY:      { from: Feature, to: UserStory }
+  VERIFIES:       { from: TestCase, to: UserStory }
+  # landscape
+  FROM_SYSTEM:    { from: Interface, to: System }
+  TO_SYSTEM:      { from: Interface, to: System }
+  CARRIES:        { from: Interface, to: Attribute }
+  DEFINED_IN:     { from: Attribute, to: System, props: [field, type, max_length, unit] }
+  # work items touching the landscape
+  USES:           { from: UserStory, to: Attribute }
+  IMPLEMENTS:     { from: UserStory, to: Interface }
+  CHECKS:         { from: TestCase, to: Attribute }
+  EXERCISES:      { from: TestCase, to: Interface }
+  # vocabulary
+  NAMES:          { from: Concept, to: Attribute }
+  # knowledge flow
+  SOURCED_FROM:   { from: Decision, to: Document, props: [quote, quote_start, quote_end] }
+  AFFECTS:        { from: Decision, to: Attribute }
+  RAISES:         { from: Decision, to: Risk }
+
+# Impact rule used by the engine: from a changed Attribute, walk
+#   Attribute <-CARRIES- Interface, Attribute <-USES- UserStory, Attribute <-CHECKS- TestCase,
+#   Interface <-IMPLEMENTS- UserStory, Interface <-EXERCISES- TestCase, UserStory <-VERIFIES- TestCase
+# and report every system whose definition of the attribute differs from the new value.
+impact_walk:
+  - [Attribute, CARRIES, Interface, reverse]
+  - [Attribute, USES, UserStory, reverse]
+  - [Attribute, CHECKS, TestCase, reverse]
+  - [Interface, IMPLEMENTS, UserStory, reverse]
+  - [Interface, EXERCISES, TestCase, reverse]
+  - [UserStory, VERIFIES, TestCase, reverse]

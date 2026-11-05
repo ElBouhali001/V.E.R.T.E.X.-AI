@@ -1,0 +1,16 @@
+# A new user story created by the MES team in Jira. It arrives through the Jira connector.
+# PLANTED: the MES operation label field is renamed and shortened; PLM-to-MES tests must be flagged.
+id: US-412
+jira_key: ACME-412
+feature: FEAT-6
+team: MES team
+status: To Do
+created: 2026-10-28
+text: >
+  As MES lead, I want the station screen field "Operation Label" renamed to "Step Name"
+  and limited to 40 characters, so that it fits the new 10-inch station displays.
+acceptance:
+  - MES field OperationLabel is renamed StepName
+  - StepName accepts at most 40 characters
+uses: [ATT-OPLABEL]
+implements: []

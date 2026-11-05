@@ -1,0 +1,171 @@
+# SAFe backlog for Acme Mobility, PI-2. jira_key = the item's key in the client's Jira (mock).
+# uses = attributes a story reads or writes; implements = interfaces it builds.
+epics:
+  - { id: EP-1, jira_key: ACME-1, title: CAD data management integration }
+  - { id: EP-2, jira_key: ACME-2, title: Product master data synchronization between PLM and ERP }
+  - { id: EP-3, jira_key: ACME-3, title: Engineering change management across systems }
+  - { id: EP-4, jira_key: ACME-4, title: Manufacturing process continuity from PLM to MES }
+
+capabilities:
+  - { id: CAP-1, epic: EP-1, jira_key: ACME-10, title: Connect CAD authoring tools to PLM }
+  - { id: CAP-2, epic: EP-2, jira_key: ACME-11, title: Publish and transform xBOMs from PLM to ERP }
+  - { id: CAP-3, epic: EP-3, jira_key: ACME-12, title: Propagate approved engineering changes from PLM to ERP }
+  - { id: CAP-4, epic: EP-4, jira_key: ACME-13, title: Publish Process BOM and work instructions to MES }
+  - { id: CAP-5, epic: EP-2, jira_key: ACME-14, title: Govern part master data quality }
+
+features:
+  - { id: FEAT-1, capability: CAP-1, jira_key: ACME-20, title: CAD check-in and check-out }
+  - { id: FEAT-2, capability: CAP-1, jira_key: ACME-21, title: CAD lock and unlock }
+  - { id: FEAT-3, capability: CAP-2, jira_key: ACME-22, title: MBOM generation from EBOM }
+  - { id: FEAT-4, capability: CAP-2, jira_key: ACME-23, title: Part master and MBOM publication to ERP }
+  - { id: FEAT-5, capability: CAP-3, jira_key: ACME-24, title: ECO transfer to ERP with effectivity date }
+  - { id: FEAT-6, capability: CAP-4, jira_key: ACME-25, title: Process BOM (BOP) publication to MES }
+  - { id: FEAT-7, capability: CAP-4, jira_key: ACME-26, title: Work instruction publication to MES }
+  - { id: FEAT-8, capability: CAP-5, jira_key: ACME-27, title: Part description and naming rules }
+  - { id: FEAT-9, capability: CAP-5, jira_key: ACME-28, title: Unit and mass consistency checks }
+
+user_stories:
+  - id: US-101
+    feature: FEAT-1
+    jira_key: ACME-101
+    team: PLM team
+    status: Done
+    text: As a design engineer, I want to check in my CAD assembly from the CAD tool to PLM, so that the team works on controlled data.
+    acceptance: [Check-in creates a new iteration, Part number, revision, material and mass are synchronised]
+    uses: [ATT-PARTNO, ATT-REV, ATT-MATERIAL, ATT-WEIGHT]
+    implements: [INT-04]
+  - id: US-102
+    feature: FEAT-1
+    jira_key: ACME-102
+    team: PLM team
+    status: Done
+    text: As a design engineer, I want to check out a released part for modification, so that a new revision is created under change control.
+    acceptance: [Check-out of a Released part requires a Change Action]
+    uses: [ATT-REV, ATT-LIFECYCLE]
+    implements: []
+  - id: US-103
+    feature: FEAT-2
+    jira_key: ACME-103
+    team: PLM team
+    status: Done
+    text: As a design engineer, I want a part I edit to be locked, so that nobody overwrites my changes.
+    acceptance: [A locked part cannot be modified by another user]
+    uses: []
+    implements: []
+  - id: US-201
+    feature: FEAT-4
+    jira_key: ACME-201
+    team: PLM team
+    status: In Progress
+    text: As an ERP planner, I want the part master to be created in SAP when a Change Action is released in PLM, so that purchasing and planning can start.
+    acceptance: [Part number, description, unit, mass and make/buy are created in SAP, Transfer happens within 15 minutes of release]
+    uses: [ATT-PARTNO, ATT-DESC, ATT-UOM, ATT-WEIGHT, ATT-MAKEBUY]
+    implements: [INT-01]
+  - id: US-202
+    feature: FEAT-4
+    jira_key: ACME-202
+    team: PLM team
+    status: In Progress
+    text: As an ERP planner, I want the released MBOM to be published to SAP as a production BOM, so that production orders use the right structure.
+    acceptance: [BOM items, quantities and effectivity are identical in PLM and SAP]
+    uses: [ATT-PARTNO, ATT-UOM, ATT-EFFDATE]
+    implements: [INT-01]
+  - id: US-203
+    feature: FEAT-3
+    jira_key: ACME-203
+    team: PLM team
+    status: To Do
+    text: As a manufacturing engineer, I want to generate the MBOM from the released EBOM, so that I start from engineering data instead of retyping it.
+    acceptance: [Generated MBOM keeps part numbers and descriptions, Make/buy can be set per item]
+    uses: [ATT-PARTNO, ATT-DESC, ATT-MAKEBUY]
+    implements: []
+  - id: US-204
+    feature: FEAT-4
+    jira_key: ACME-204
+    team: PLM team
+    status: To Do
+    text: As a buyer at the Sevilla plant, I want part descriptions in French and English in SAP, so that I can work in my language.
+    acceptance: [Both FR and EN descriptions are transferred, Missing translation blocks the transfer]
+    uses: [ATT-DESC]
+    implements: [INT-01]
+  - id: US-301
+    feature: FEAT-5
+    jira_key: ACME-301
+    team: PLM team
+    status: In Progress
+    text: As a change manager, I want my approved ECO, including EBOM and MBOM updates in PLM, to trigger an MBOM update in ERP with effectivity date, so that production uses the correct version.
+    acceptance: [ERP BOM changes apply from the effectivity date, New revision is visible in SAP]
+    uses: [ATT-EFFDATE, ATT-REV]
+    implements: [INT-01]
+  - id: US-302
+    feature: FEAT-5
+    jira_key: ACME-302
+    team: PLM team
+    status: To Do
+    text: As a change manager, I want changes on serialised parts to apply from a serial number, so that units already built stay traceable.
+    acceptance: [Serial effectivity is transferred for serial-controlled parts]
+    uses: [ATT-SERIAL, ATT-EFFDATE]
+    implements: [INT-01]
+  - id: US-401
+    feature: FEAT-6
+    jira_key: ACME-401
+    team: MES team
+    status: In Progress
+    text: As an MES engineer, I want the released Process BOM with operations, sequence and work centers, so that I can configure the line without retyping.
+    acceptance: [Operations arrive in sequence order, Each operation has its work center]
+    uses: [ATT-OPLABEL, ATT-OPSEQ, ATT-WORKCENTER]
+    implements: [INT-02]
+  - id: US-402
+    feature: FEAT-6
+    jira_key: ACME-402
+    team: MES team
+    status: In Progress
+    text: As an operator, I want to see the operation label defined in PLM on my station screen, so that I know which step I am on.
+    acceptance: [The label shown in MES equals the PLM operation name]
+    uses: [ATT-OPLABEL]
+    implements: [INT-02]
+  - id: US-403
+    feature: FEAT-7
+    jira_key: ACME-403
+    team: MES team
+    status: To Do
+    text: As an operator, I want the work instruction for each operation on my station screen, so that I follow the validated method.
+    acceptance: [Each operation shows its latest released work instruction]
+    uses: [ATT-WI, ATT-OPLABEL]
+    implements: [INT-02]
+  - id: US-404
+    feature: FEAT-6
+    jira_key: ACME-404
+    team: MES team
+    status: To Do
+    text: As an operator, I want the production order to show the part description at my station, so that I pick the right part.
+    acceptance: [Description shown at the station equals the SAP description]
+    uses: [ATT-DESC, ATT-WORKCENTER]
+    implements: [INT-03]
+  - id: US-501
+    feature: FEAT-8
+    jira_key: ACME-501
+    team: PLM team
+    status: In Progress
+    text: As a data steward, I want part descriptions to follow the naming rule at creation, so that descriptions are consistent across the catalogue.
+    acceptance: [Description follows NOUN, MODIFIER, size pattern, Description length is checked at creation]
+    uses: [ATT-DESC, ATT-CLASS]
+    implements: []
+  - id: US-502
+    feature: FEAT-9
+    jira_key: ACME-502
+    team: PLM team
+    status: To Do
+    text: As a data steward, I want mass and unit to be consistent between PLM and SAP, so that logistics and costing are right.
+    acceptance: [Mass in SAP equals mass in PLM after unit conversion]
+    uses: [ATT-WEIGHT, ATT-UOM]
+    implements: [INT-01]
+  - id: US-503
+    feature: FEAT-8
+    jira_key: ACME-503
+    team: PLM team
+    status: Done
+    text: As an ERP planner, I want only Released parts to be published to SAP, so that work-in-progress data never reaches production.
+    acceptance: [Parts in Private, In Work or Frozen state are not transferred]
+    uses: [ATT-LIFECYCLE]
+    implements: [INT-01]
